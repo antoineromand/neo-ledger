@@ -1,4 +1,6 @@
-package org.neo_ledger_transaction.service;
+package org.neo_ledger_transaction.application.service;
+
+import org.neo_ledger_transaction.domain.service.PaymentParser;
 
 import java.util.List;
 

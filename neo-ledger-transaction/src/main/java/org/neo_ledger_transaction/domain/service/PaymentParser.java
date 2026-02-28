@@ -1,4 +1,4 @@
-package org.neo_ledger_transaction.service;
+package org.neo_ledger_transaction.domain.service;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;

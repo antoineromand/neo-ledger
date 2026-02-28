@@ -1,7 +1,8 @@
-package org.neo_ledger_transaction.service;
+package org.neo_ledger_transaction.application.service;
 
-import org.neo_ledger_transaction.RawPaymentFile;
-import org.neo_ledger_transaction.RawSepaTransaction;
+import org.neo_ledger_transaction.domain.model.RawPaymentFile;
+import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
+import org.neo_ledger_transaction.domain.service.PaymentParser;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;

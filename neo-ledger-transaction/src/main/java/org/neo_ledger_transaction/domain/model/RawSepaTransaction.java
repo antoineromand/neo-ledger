@@ -1,4 +1,4 @@
-package org.neo_ledger_transaction;
+package org.neo_ledger_transaction.domain.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
