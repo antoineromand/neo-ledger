@@ -5,8 +5,7 @@ import java.time.LocalDateTime;
 
 public record FileHeader(
         String msgId,
-        int expectedCount,
-        BigDecimal expectedCtrlSum,
+        int expectedNbTxs,
         LocalDateTime creationDateTime
 ) {
 }
