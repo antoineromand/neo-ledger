@@ -1,10 +1,15 @@
 package org.neo_ledger_transaction.application.service.sepa;
 
 import org.neo_ledger_transaction.application.PaymentFileType;
-import org.neo_ledger_transaction.domain.model.*;
+import org.neo_ledger_transaction.domain.model.FileHeader;
+import org.neo_ledger_transaction.domain.model.RawPaymentFile;
+import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 
-import javax.xml.stream.*;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -175,24 +180,37 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
      * @return La valeur textuelle trouvée ou null
      */
     private String parseSpecificId(XMLStreamReader r, String endTag) throws XMLStreamException {
-        String value = null;
+        StringBuilder sb = new StringBuilder();
+        boolean insideTargetTag = false;
 
         while (r.hasNext()) {
             int event = r.next();
 
-            if (event == XMLStreamConstants.CHARACTERS) {
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                insideTargetTag = "Id".equals(r.getLocalName());
+            }
+
+            if (event == XMLStreamConstants.CHARACTERS && insideTargetTag) {
                 String text = r.getText().trim();
                 if (!text.isEmpty()) {
-                    value = text;
+                    sb.append(text);
                 }
             }
 
-            if (event == XMLStreamConstants.END_ELEMENT && endTag.equals(r.getLocalName())) {
-                break;
+            if (event == XMLStreamConstants.END_ELEMENT) {
+                if ("Id".equals(r.getLocalName())) {
+                    insideTargetTag = false;
+                }
+                if (endTag.equals(r.getLocalName())) {
+                    break;
+                }
             }
         }
-        return value;
+
+        String result = sb.toString();
+        return result.isEmpty() ? null : result;
     }
+
     @Override
     public boolean supports(String type) {
         return PaymentFileType.SEPA_PAIN_008.name().equals(type);

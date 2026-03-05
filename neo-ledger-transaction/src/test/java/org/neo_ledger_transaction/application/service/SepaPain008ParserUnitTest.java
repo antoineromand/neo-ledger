@@ -1,5 +1,6 @@
 package org.neo_ledger_transaction.application.service;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
 
@@ -18,6 +19,7 @@ public class SepaPain008ParserUnitTest {
     private final SepaPain008Parser parser = new SepaPain008Parser();
 
     @Test
+    @DisplayName("Should parse SEPA PAIN.008 file")
     void shouldParseSepaPain008() throws FileNotFoundException, XMLStreamException {
         File initialFile = new File("src/test/resources/sepa-008-sample.xml");
         InputStream targetStream = new FileInputStream(initialFile);

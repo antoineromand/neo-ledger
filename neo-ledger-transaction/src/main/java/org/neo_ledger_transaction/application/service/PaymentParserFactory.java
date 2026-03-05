@@ -1,11 +1,14 @@
 package org.neo_ledger_transaction.application.service;
 
-import org.neo_ledger_transaction.application.PaymentFileType;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Factory orchestrant la récupération des parseurs de fichiers de paiement.
+ * Utilise le pattern Strategy pour fournir le parseur correspondant au format détecté.
+ */
 @Component
 public class PaymentParserFactory {
     private final List<PaymentParser<?>>  paymentParsers;
