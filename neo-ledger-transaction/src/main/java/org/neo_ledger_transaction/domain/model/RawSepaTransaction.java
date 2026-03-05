@@ -11,5 +11,11 @@ public record RawSepaTransaction(
         String currency,
         LocalDate requestedDate,
         boolean isInstant,
-        String remittanceInfo
-) {}
+        String remittanceInfo,
+        String mandateId,
+        String creditorSchemeId
+) implements RawTransaction {
+
+    @Override public String debtorIdentifier() { return debtorIban; }
+    @Override public String creditorIdentifier() { return creditorIban; }
+}

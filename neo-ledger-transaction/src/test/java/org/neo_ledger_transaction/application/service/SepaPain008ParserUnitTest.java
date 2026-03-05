@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SepaPain008ParserTest {
+public class SepaPain008ParserUnitTest {
     private final SepaPain008Parser parser = new SepaPain008Parser();
 
     @Test
