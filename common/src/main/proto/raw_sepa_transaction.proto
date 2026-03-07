@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.neo_ledger.common.event";
+
+message RawSepaTransaction {
+  string end_to_end_id = 1;
+  string debtor_iban = 2;
+  string creditor_iban = 3;
+  string amount = 4;
+  string currency = 5;
+  string requested_date = 6;
+  bool is_instant = 7;
+  string remittance_info = 8;
+  string mandate_id = 9;
+  string creditor_scheme_id = 10;
+}

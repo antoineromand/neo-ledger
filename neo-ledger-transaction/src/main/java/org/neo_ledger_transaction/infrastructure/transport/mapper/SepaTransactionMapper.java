@@ -13,7 +13,19 @@ public class SepaTransactionMapper implements TransactionMapper<RawSepaTransacti
 
     @Override
     public byte[] toBinary(RawSepaTransaction transaction) {
-        return new byte[0];
+        return org.neo_ledger.common.event.RawSepaTransaction.newBuilder()
+                .setEndToEndId(transaction.endToEndId())
+                .setDebtorIban(transaction.debtorIban())
+                .setCreditorIban(transaction.creditorIban())
+                .setAmount(transaction.amount().toPlainString())
+                .setCurrency(transaction.currency())
+                .setRequestedDate(transaction.requestedDate().toString())
+                .setIsInstant(transaction.isInstant())
+                .setRemittanceInfo(transaction.remittanceInfo() != null ? transaction.remittanceInfo() : "")
+                .setMandateId(transaction.mandateId() != null ? transaction.mandateId() : "")
+                .setCreditorSchemeId(transaction.creditorSchemeId() != null ? transaction.creditorSchemeId() : "")
+                .build()
+                .toByteArray();
     }
 
     @Override
