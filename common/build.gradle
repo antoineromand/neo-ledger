@@ -1,0 +1,45 @@
+plugins {
+    id 'java-library'
+    id 'com.google.protobuf' version '0.9.6'
+    id 'idea'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'com.google.protobuf:protobuf-java:4.33.5'
+
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+
+    implementation libs.guava
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.33.5"
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {}
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        sourceDirs += file("build/generated/source/proto/main/java")
+        generatedSourceDirs += file("build/generated/source/proto/main/java")
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}

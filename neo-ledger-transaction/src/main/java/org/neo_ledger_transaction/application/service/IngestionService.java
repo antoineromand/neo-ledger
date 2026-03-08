@@ -65,6 +65,7 @@ public class IngestionService implements IngestionUseCasePort {
 
         res.transactions().forEach(this.eventPublisher::publish);
 
+
     }
 
     /**

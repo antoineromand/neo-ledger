@@ -5,6 +5,7 @@ import org.neo_ledger_transaction.domain.model.FileHeader;
 import org.neo_ledger_transaction.domain.model.RawPaymentFile;
 import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -23,6 +24,7 @@ import java.util.List;
  * Implémentation du parser pour les fichiers SEPA (PAIN.008).
  * Utilise l'API StAX pour un parsing performant (streaming).
  */
+@Component
 public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTransaction>> {
 
     /**

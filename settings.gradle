@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = 'neo-ledger'
-include('neo-ledger-transaction')
+include 'common', 'neo-ledger-transaction'
