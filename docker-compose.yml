@@ -95,6 +95,20 @@ services:
     volumes:
       - kafka3_data:/var/lib/kafka/data
 
+  neo-ledger-transaction-api:
+    image: neo-ledger-transaction:0.0.1
+    container_name: transaction-api
+    ports:
+      - 3000:3000
+    environment:
+      KAFKA_ADDRESS: kafka1:9092,kafka2:9092,kafka3:9092
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - kafka-net
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
