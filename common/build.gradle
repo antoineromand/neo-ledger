@@ -1,11 +1,18 @@
 plugins {
     id 'java-library'
     id 'com.google.protobuf' version '0.9.6'
-    id 'idea'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java-test-fixtures'
 }
 
 repositories {
     mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.4.5"
+    }
 }
 
 dependencies {
@@ -16,6 +23,11 @@ dependencies {
     implementation libs.guava
     testImplementation libs.junit.jupiter
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    testFixturesImplementation 'org.testcontainers:kafka'
+    testFixturesImplementation 'org.testcontainers:junit-jupiter'
+    testFixturesImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 protobuf {
@@ -31,15 +43,10 @@ protobuf {
     }
 }
 
-idea {
-    module {
-        sourceDirs += file("build/generated/source/proto/main/java")
-        generatedSourceDirs += file("build/generated/source/proto/main/java")
-    }
-}
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
+
