@@ -1,15 +1,12 @@
 name: Run unit tests and integration tests on neo-ledger-transaction api
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'neo-ledger-transaction/**'
-      - 'common/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'neo-ledger-transaction/**'
-      - 'common/**'
+    paths: [ 'neo-ledger-transaction/**', 'common/**' ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   unit-tests:
