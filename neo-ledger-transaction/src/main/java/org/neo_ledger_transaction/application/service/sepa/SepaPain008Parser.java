@@ -94,7 +94,7 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     private List<RawSepaTransaction> parsePmtInf(XMLStreamReader r) throws XMLStreamException {
         List<RawSepaTransaction> transactions = new ArrayList<>();
         String creditorIban = null;
-        String creditorSchemeId = null; // ICS
+        String creditorSchemeId = null;
         LocalDate requestedDate = null;
         boolean groupIsInstant = false;
 
