@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class KafkaTransactionEventPublisherTest extends AbstractKafkaContainer {
+public class KafkaTransactionEventPublisherIntTest extends AbstractKafkaContainer {
 
     @Autowired
     private KafkaEventPublisher publisher;
