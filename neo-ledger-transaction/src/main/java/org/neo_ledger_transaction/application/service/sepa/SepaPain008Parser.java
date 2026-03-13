@@ -21,17 +21,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implémentation du parser pour les fichiers SEPA (PAIN.008).
- * Utilise l'API StAX pour un parsing performant (streaming).
+ * Parser de fichiers SEPA Direct Debit de type {@code pain.008}.
+ *
+ * <p>
+ * Cette implémentation utilise l'API StAX (Streaming API for XML) afin de parser
+ * les fichiers XML de manière efficace en mémoire.
+ * Contrairement à DOM, le document n'est pas chargé entièrement en mémoire.
+ * </p>
+ *
+ * <p>
+ * Le parser extrait :
+ * <ul>
+ *     <li>les informations globales du fichier ({@code GrpHdr})</li>
+ *     <li>les blocs de paiement ({@code PmtInf})</li>
+ *     <li>les transactions individuelles ({@code DrctDbtTxInf})</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Le résultat est encapsulé dans un {@link RawPaymentFile} contenant :
+ * <ul>
+ *     <li>un {@link FileHeader}</li>
+ *     <li>une liste de {@link RawSepaTransaction}</li>
+ * </ul>
+ * </p>
  */
 @Component
 public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTransaction>> {
 
     /**
-     * Point d'entrée principal pour le parsing d'un flux XML PAIN.008.
-     * * @param stream Le flux d'entrée contenant le fichier XML.
-     * @return Un objet {@link RawPaymentFile} contenant le header et la liste des transactions.
-     * @throws XMLStreamException Si le flux XML est mal formé ou interrompu.
+     * Parse un flux XML correspondant à un fichier SEPA {@code pain.008}.
+     *
+     * @param stream flux XML en entrée
+     * @return représentation brute du fichier avec header et transactions
+     * @throws XMLStreamException si le flux XML est mal formé
      */
     @Override
     public RawPaymentFile<RawSepaTransaction> parse(InputStream stream) throws XMLStreamException {
@@ -46,23 +69,35 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
 
         while (r.hasNext()) {
             int event = r.next();
+
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String ln = r.getLocalName();
-                if ("GrpHdr".equals(ln)) {
-                    header = parseGrpHdr(r);
-                } else if ("PmtInf".equals(ln)) {
-                    allTransactions.addAll(parsePmtInf(r));
+                switch (r.getLocalName()) {
+                    case "GrpHdr" -> header = parseGrpHdr(r);
+                    case "PmtInf" -> allTransactions.addAll(parsePmtInf(r));
+                    default -> {
+                    }
                 }
             }
         }
+
         return new RawPaymentFile<>(header, allTransactions);
     }
 
     /**
-     * Extrait les métadonnées globales du fichier situées dans le bloc Group Header (GrpHdr).
-     * * @param r Le {@link XMLStreamReader} positionné au début de la balise GrpHdr.
-     * @return Un {@link FileHeader} contenant l'ID du message et les infos de création.
-     * @throws XMLStreamException Si une erreur de lecture survient.
+     * Parse le bloc {@code GrpHdr} (Group Header).
+     *
+     * <p>
+     * Ce bloc contient les métadonnées globales du fichier SEPA :
+     * <ul>
+     *     <li>l'identifiant du message</li>
+     *     <li>le nombre total de transactions</li>
+     *     <li>la date/heure de création du fichier</li>
+     * </ul>
+     * </p>
+     *
+     * @param r lecteur XML positionné sur {@code GrpHdr}
+     * @return header du fichier SEPA
+     * @throws XMLStreamException en cas d'erreur de parsing
      */
     private FileHeader parseGrpHdr(XMLStreamReader r) throws XMLStreamException {
         String msgId = null;
@@ -71,28 +106,38 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
 
         while (r.hasNext()) {
             int event = r.next();
+
             if (event == XMLStreamConstants.START_ELEMENT) {
                 switch (r.getLocalName()) {
                     case "MsgId" -> msgId = r.getElementText();
                     case "NbOfTxs" -> count = Integer.parseInt(r.getElementText());
                     case "CreDtTm" -> dt = LocalDateTime.parse(r.getElementText(), DateTimeFormatter.ISO_DATE_TIME);
+                    default -> {
+                    }
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && "GrpHdr".equals(r.getLocalName())) {
                 break;
             }
         }
+
         return new FileHeader(msgId, count, dt);
     }
 
     /**
-     * Analyse un bloc d'information de paiement (PmtInf) et extrait les transactions associées.
-     * Gère l'héritage des données communes (IBAN créancier, ICS, Date) vers les transactions individuelles.
-     * * @param r Le {@link XMLStreamReader} positionné au début de la balise PmtInf.
-     * @return Une liste de {@link RawSepaTransaction} extraites de ce bloc.
-     * @throws XMLStreamException Si une erreur de lecture survient.
+     * Parse un bloc {@code PmtInf} contenant un groupe de transactions.
+     *
+     * <p>
+     * Les informations présentes dans ce bloc sont communes aux transactions
+     * qu'il contient (IBAN créancier, date de collecte, identifiant créancier).
+     * </p>
+     *
+     * @param r lecteur XML positionné sur {@code PmtInf}
+     * @return liste des transactions contenues dans ce bloc
+     * @throws XMLStreamException en cas d'erreur de parsing
      */
     private List<RawSepaTransaction> parsePmtInf(XMLStreamReader r) throws XMLStreamException {
         List<RawSepaTransaction> transactions = new ArrayList<>();
+
         String creditorIban = null;
         String creditorSchemeId = null;
         LocalDate requestedDate = null;
@@ -100,60 +145,73 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
 
         while (r.hasNext()) {
             int event = r.next();
+
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String ln = r.getLocalName();
+                switch (r.getLocalName()) {
+                    case "ReqdColltnDt" -> requestedDate = LocalDate.parse(r.getElementText());
+                    case "CdtrAcct" -> creditorIban = parseAccountIban(r, "CdtrAcct");
+                    case "CdtrSchmeId" -> creditorSchemeId = parseCreditorSchemeId(r);
+                    case "PmtTpInf" -> groupIsInstant = parsePaymentTypeInformation(r);
 
-                if ("IBAN".equals(ln)) creditorIban = r.getElementText();
-                if ("ReqdColltnDt".equals(ln)) requestedDate = LocalDate.parse(r.getElementText());
-
-                if ("CdtrSchmeId".equals(ln)) {
-                    creditorSchemeId = parseSpecificId(r, "CdtrSchmeId");
-                }
-
-                if ("Cd".equals(ln) && "INST".equals(r.getElementText())) groupIsInstant = true;
-
-                if ("DrctDbtTxInf".equals(ln)) {
-                    transactions.add(parseTransaction(r, creditorIban, groupIsInstant, requestedDate, creditorSchemeId));
+                    case "DrctDbtTxInf" -> transactions.add(parseTransaction(
+                            r,
+                            creditorIban,
+                            groupIsInstant,
+                            requestedDate,
+                            creditorSchemeId
+                    ));
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && "PmtInf".equals(r.getLocalName())) {
                 break;
             }
         }
+
         return transactions;
     }
 
     /**
-     * Analyse une transaction individuelle de prélèvement (DrctDbtTxInf).
-     * * @param r                Le {@link XMLStreamReader} positionné au début de DrctDbtTxInf.
-     * @param creditorIban     L'IBAN du créancier hérité du bloc parent.
-     * @param isInstant        Indicateur de paiement instantané hérité du bloc parent.
-     * @param groupDate        La date d'exécution par défaut héritée du bloc parent.
-     * @param creditorSchemeId L'identifiant créancier (ICS) hérité du bloc parent.
-     * @return Un record {@link RawSepaTransaction} complet.
-     * @throws XMLStreamException Si une erreur de lecture survient.
+     * Parse une transaction individuelle {@code DrctDbtTxInf}.
+     *
+     * @param r lecteur XML positionné sur la transaction
+     * @param creditorIban IBAN du créancier (hérité du bloc PmtInf)
+     * @param isInstant indicateur de paiement instantané
+     * @param groupDate date de collecte du groupe
+     * @param creditorSchemeId identifiant créancier SEPA (ICS)
+     * @return transaction SEPA brute
+     * @throws XMLStreamException en cas d'erreur de parsing
      */
-    private RawSepaTransaction parseTransaction(XMLStreamReader r, String creditorIban, boolean isInstant, LocalDate groupDate, String creditorSchemeId) throws XMLStreamException {
+    private RawSepaTransaction parseTransaction(
+            XMLStreamReader r,
+            String creditorIban,
+            boolean isInstant,
+            LocalDate groupDate,
+            String creditorSchemeId
+    ) throws XMLStreamException {
+
         String e2eId = null;
         String debtorIban = null;
         BigDecimal amount = null;
         String currency = null;
         String remittanceInfo = null;
-        String mandateId = null; // RUM
-        LocalDate transactionDate = groupDate;
+        String mandateId = null;
 
         while (r.hasNext()) {
             int event = r.next();
+
             if (event == XMLStreamConstants.START_ELEMENT) {
                 switch (r.getLocalName()) {
                     case "EndToEndId" -> e2eId = r.getElementText();
+
                     case "InstdAmt" -> {
                         currency = r.getAttributeValue(null, "Ccy");
                         amount = new BigDecimal(r.getElementText());
                     }
-                    case "IBAN" -> debtorIban = r.getElementText();
-                    case "MndtId" -> mandateId = r.getElementText(); // Extraction de la RUM
-                    case "ReqdColltnDt" -> transactionDate = LocalDate.parse(r.getElementText());
-                    case "Ustrd" -> remittanceInfo = r.getElementText();
+
+                    case "DbtrAcct" -> debtorIban = parseAccountIban(r, "DbtrAcct");
+
+                    case "DrctDbtTx" -> mandateId = parseMandateId(r);
+
+                    case "RmtInf" -> remittanceInfo = parseRemittanceInfo(r);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && "DrctDbtTxInf".equals(r.getLocalName())) {
                 break;
@@ -166,53 +224,162 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
                 creditorIban,
                 amount,
                 currency,
-                transactionDate,
+                groupDate,
                 isInstant,
                 remittanceInfo,
                 mandateId,
                 creditorSchemeId
         );
     }
+
     /**
-     * Parcourt un bloc XML complexe pour en extraire la valeur textuelle finale (la feuille).
-     * Utile pour extraire les IDs imbriqués comme l'ICS (CdtrSchmeId) ou la RUM (MndtId).
+     * Extrait un IBAN à partir d'un bloc {@code CdtrAcct} ou {@code DbtrAcct}.
      *
-     * @param r      Le XMLStreamReader positionné au début du bloc
-     * @param endTag Le nom de la balise de fermeture qui délimite la recherche (ex: "CdtrSchmeId")
-     * @return La valeur textuelle trouvée ou null
+     * @param r lecteur XML
+     * @param endTag balise de fermeture attendue
+     * @return IBAN extrait ou null
+     * @throws XMLStreamException erreur XML
      */
-    private String parseSpecificId(XMLStreamReader r, String endTag) throws XMLStreamException {
-        StringBuilder sb = new StringBuilder();
-        boolean insideTargetTag = false;
+    private String parseAccountIban(XMLStreamReader r, String endTag) throws XMLStreamException {
+        String iban = null;
 
         while (r.hasNext()) {
             int event = r.next();
 
-            if (event == XMLStreamConstants.START_ELEMENT) {
-                insideTargetTag = "Id".equals(r.getLocalName());
-            }
-
-            if (event == XMLStreamConstants.CHARACTERS && insideTargetTag) {
-                String text = r.getText().trim();
-                if (!text.isEmpty()) {
-                    sb.append(text);
-                }
-            }
-
-            if (event == XMLStreamConstants.END_ELEMENT) {
-                if ("Id".equals(r.getLocalName())) {
-                    insideTargetTag = false;
-                }
-                if (endTag.equals(r.getLocalName())) {
-                    break;
-                }
+            if (event == XMLStreamConstants.START_ELEMENT && "IBAN".equals(r.getLocalName())) {
+                iban = r.getElementText();
+            } else if (event == XMLStreamConstants.END_ELEMENT && endTag.equals(r.getLocalName())) {
+                break;
             }
         }
 
-        String result = sb.toString();
-        return result.isEmpty() ? null : result;
+        return iban;
     }
 
+    /**
+     * Parse les informations de type de paiement.
+     *
+     * @param r lecteur XML
+     * @return true si service level INST détecté
+     * @throws XMLStreamException erreur XML
+     */
+    private boolean parsePaymentTypeInformation(XMLStreamReader r) throws XMLStreamException {
+        boolean isInstant = false;
+
+        while (r.hasNext()) {
+            int event = r.next();
+
+            if (event == XMLStreamConstants.START_ELEMENT && "Cd".equals(r.getLocalName())) {
+                String value = r.getElementText();
+                if ("INST".equals(value)) {
+                    isInstant = true;
+                }
+            } else if (event == XMLStreamConstants.END_ELEMENT && "PmtTpInf".equals(r.getLocalName())) {
+                break;
+            }
+        }
+
+        return isInstant;
+    }
+
+    /**
+     * Extrait l'identifiant créancier SEPA (ICS).
+     *
+     * @param r lecteur XML
+     * @return identifiant ICS
+     * @throws XMLStreamException erreur XML
+     */
+    private String parseCreditorSchemeId(XMLStreamReader r) throws XMLStreamException {
+        String creditorSchemeId = null;
+
+        while (r.hasNext()) {
+            int event = r.next();
+
+            if (event == XMLStreamConstants.START_ELEMENT && "Othr".equals(r.getLocalName())) {
+                creditorSchemeId = parseOtherIdentification(r);
+            } else if (event == XMLStreamConstants.END_ELEMENT && "CdtrSchmeId".equals(r.getLocalName())) {
+                break;
+            }
+        }
+
+        return creditorSchemeId;
+    }
+
+    /**
+     * Parse un bloc {@code Othr} contenant un identifiant générique.
+     *
+     * @param r lecteur XML
+     * @return valeur de l'identifiant
+     * @throws XMLStreamException erreur XML
+     */
+    private String parseOtherIdentification(XMLStreamReader r) throws XMLStreamException {
+        String id = null;
+
+        while (r.hasNext()) {
+            int event = r.next();
+
+            if (event == XMLStreamConstants.START_ELEMENT && "Id".equals(r.getLocalName())) {
+                id = r.getElementText();
+            } else if (event == XMLStreamConstants.END_ELEMENT && "Othr".equals(r.getLocalName())) {
+                break;
+            }
+        }
+
+        return id;
+    }
+
+    /**
+     * Extrait la RUM (Référence Unique de Mandat).
+     *
+     * @param r lecteur XML
+     * @return identifiant de mandat
+     * @throws XMLStreamException erreur XML
+     */
+    private String parseMandateId(XMLStreamReader r) throws XMLStreamException {
+        String mandateId = null;
+
+        while (r.hasNext()) {
+            int event = r.next();
+
+            if (event == XMLStreamConstants.START_ELEMENT && "MndtId".equals(r.getLocalName())) {
+                mandateId = r.getElementText();
+            } else if (event == XMLStreamConstants.END_ELEMENT && "DrctDbtTx".equals(r.getLocalName())) {
+                break;
+            }
+        }
+
+        return mandateId;
+    }
+
+    /**
+     * Extrait l'information de remise non structurée.
+     *
+     * @param r lecteur XML
+     * @return texte de remittance
+     * @throws XMLStreamException erreur XML
+     */
+    private String parseRemittanceInfo(XMLStreamReader r) throws XMLStreamException {
+        String remittanceInfo = null;
+
+        while (r.hasNext()) {
+            int event = r.next();
+
+            if (event == XMLStreamConstants.START_ELEMENT && "Ustrd".equals(r.getLocalName())) {
+                remittanceInfo = r.getElementText();
+            } else if (event == XMLStreamConstants.END_ELEMENT && "RmtInf".equals(r.getLocalName())) {
+                break;
+            }
+        }
+
+        return remittanceInfo;
+    }
+
+    /**
+     * Indique si ce parser supporte le type de fichier donné.
+     *
+     * @param type type du fichier de paiement
+     * @return true si le parser peut traiter ce type
+     */
     @Override
     public boolean supports(String type) {
         return PaymentFileType.SEPA_PAIN_008.name().equals(type);
