@@ -1,4 +1,4 @@
-package org.neo_ledger_transaction.application.service;
+package org.neo_ledger_transaction.application.service.factory;
 
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.springframework.stereotype.Component;

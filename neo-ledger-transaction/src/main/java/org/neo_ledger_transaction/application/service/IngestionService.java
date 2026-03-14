@@ -2,6 +2,8 @@ package org.neo_ledger_transaction.application.service;
 
 import org.neo_ledger_transaction.application.PaymentFileType;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
+import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
+import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.domain.model.RawPaymentFile;
 import org.neo_ledger_transaction.domain.model.RawTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionEventPublisher;
@@ -27,20 +29,20 @@ import java.io.InputStream;
 @Service
 public class IngestionService implements IngestionUseCasePort {
 
-    private final PaymentParserFactory factory;
+    private final PaymentParserFactory paymentfactory;
     private final TransactionEventPublisher eventPublisher;
-    private final XmlValidator xmlValidator;
+    private final XmlValidatorFactory xmlValidatorFactory;
 
     /**
      * Constructeur pour l'injection des dépendances.
      * @param paymentParserFactory La factory permettant de récupérer le parseur adapté au type de fichier.
      * @param eventPublisher Le port de sortie pour la publication des événements de transaction (ex: Kafka).
-     * @param xmlValidator Le port de sortie pour la validation du format xml.
+     * @param xmlValidatorFactory Le factory pour récupérer le validateur adapté.
      */
-    public IngestionService(PaymentParserFactory paymentParserFactory, TransactionEventPublisher eventPublisher, XmlValidator xmlValidator) {
-        this.factory = paymentParserFactory;
+    public IngestionService(PaymentParserFactory paymentParserFactory, TransactionEventPublisher eventPublisher, XmlValidatorFactory xmlValidatorFactory) {
+        this.paymentfactory = paymentParserFactory;
         this.eventPublisher = eventPublisher;
-        this.xmlValidator = xmlValidator;
+        this.xmlValidatorFactory = xmlValidatorFactory;
     }
 
     /**
@@ -61,10 +63,12 @@ public class IngestionService implements IngestionUseCasePort {
 
         String paymentType = this.detectPaymentType(new ByteArrayInputStream(xmlContent));
 
-        this.xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
+        XmlValidator xmlValidator = this.xmlValidatorFactory.getValidator(paymentType);
+
+        xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
 
         PaymentParser<RawPaymentFile<? extends RawTransaction>> parser =
-                (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.factory.getParser(paymentType);
+                (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentfactory.getParser(paymentType);
         RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
 
         res.transactions().forEach(this.eventPublisher::publish);
