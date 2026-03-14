@@ -5,7 +5,6 @@ import java.util.List;
 
 public enum PaymentFileType {
     SEPA_PAIN_008(List.of(
-            "urn:iso:std:iso:20022:tech:xsd:pain.008.001.02",
             "urn:iso:std:iso:20022:tech:xsd:pain.008.001.11"
     )),
     SEPA_PAIN_001(List.of(
