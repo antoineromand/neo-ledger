@@ -34,7 +34,7 @@ public class KafkaTransactionEventPublisherIntTest extends AbstractKafkaContaine
     void should_send_binary_protobuf_to_kafka() throws Exception {
         try (Consumer<String, byte[]> testConsumer = createTestConsumer()) {
 
-            testConsumer.subscribe(Collections.singletonList("sepa-transaction-topic"));
+            testConsumer.subscribe(Collections.singletonList("SEPA_PAIN_008"));
             KafkaTestUtils.getRecords(testConsumer, Duration.ofMillis(500));
 
             RawSepaTransaction tx = new RawSepaTransaction(
@@ -43,11 +43,11 @@ public class KafkaTransactionEventPublisherIntTest extends AbstractKafkaContaine
                     true, "Test Payment", "MAND-1", "SCHEME-1"
             );
 
-            publisher.publish(tx);
+            publisher.publish(tx, "SEPA_PAIN_008");
 
             ConsumerRecord<String, byte[]> received = KafkaTestUtils.getSingleRecord(
                     testConsumer,
-                    "sepa-transaction-topic",
+                    "SEPA_PAIN_008",
                     Duration.ofSeconds(10));
 
             org.neo_ledger.common.event.RawSepaTransaction proto =
@@ -66,7 +66,7 @@ public class KafkaTransactionEventPublisherIntTest extends AbstractKafkaContaine
 
         DefaultKafkaConsumerFactory<String, byte[]> cf = new DefaultKafkaConsumerFactory<>(props);
         Consumer<String, byte[]> consumer = cf.createConsumer();
-        consumer.subscribe(Collections.singletonList("sepa-transaction-topic"));
+        consumer.subscribe(Collections.singletonList("SEPA_PAIN_008"));
         return consumer;
     }
 }

@@ -7,5 +7,4 @@ public interface TransactionMapper<T extends RawTransaction> {
 
     byte[] toBinary(T transaction);
 
-    String getTopicName();
 }

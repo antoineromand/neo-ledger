@@ -7,6 +7,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class SepaTransactionMapper implements TransactionMapper<RawSepaTransaction> {
 
+    private final String topicName;
+
+    public SepaTransactionMapper() {
+        this.topicName = "sepa-transaction-topic";
+    }
+
     @Override
     public boolean supports(RawTransaction transaction) {
         return transaction instanceof RawSepaTransaction;
@@ -27,10 +33,5 @@ public class SepaTransactionMapper implements TransactionMapper<RawSepaTransacti
                 .setCreditorSchemeId(transaction.creditorSchemeId() != null ? transaction.creditorSchemeId() : "")
                 .build()
                 .toByteArray();
-    }
-
-    @Override
-    public String getTopicName() {
-        return "sepa-transaction-topic";
     }
 }

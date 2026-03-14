@@ -7,5 +7,5 @@ public interface TransactionEventPublisher {
      * Publie une transaction de manière agnostique.
      * Peu importe que ce soit SEPA, Swift ou autre.
      */
-    void publish(RawTransaction transaction);
+    void publish(RawTransaction transaction, String topic);
 }
