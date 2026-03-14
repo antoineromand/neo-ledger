@@ -49,12 +49,12 @@ public class IngestionServiceUnitTest {
             ingestionService.executeIngestion(targetStream);
 
             ArgumentCaptor<RawTransaction> captor = ArgumentCaptor.forClass(RawTransaction.class);
-            verify(transactionEventPublisher, atLeastOnce()).publish(captor.capture());
+            verify(transactionEventPublisher, atLeastOnce()).publish(captor.capture(), any(String.class));
 
             List<RawTransaction> publishedTransactions = captor.getAllValues();
             assertFalse(publishedTransactions.isEmpty());
 
-            RawSepaTransaction firstTx = (RawSepaTransaction) publishedTransactions.get(0);
+            RawSepaTransaction firstTx = (RawSepaTransaction) publishedTransactions.getFirst();
 
             assertNotNull(firstTx.endToEndId());
             assertNotNull(firstTx.amount());
@@ -70,7 +70,7 @@ public class IngestionServiceUnitTest {
             ingestionService.executeIngestion(targetStream);
 
             ArgumentCaptor<RawTransaction> captor = ArgumentCaptor.forClass(RawTransaction.class);
-            verify(transactionEventPublisher, atLeastOnce()).publish(captor.capture());
+            verify(transactionEventPublisher, atLeastOnce()).publish(captor.capture(), any(String.class));
 
             List<RawTransaction> publishedTransactions = captor.getAllValues();
             assertFalse(publishedTransactions.isEmpty());

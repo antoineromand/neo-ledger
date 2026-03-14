@@ -29,7 +29,7 @@ import java.io.InputStream;
 @Service
 public class IngestionService implements IngestionUseCasePort {
 
-    private final PaymentParserFactory paymentfactory;
+    private final PaymentParserFactory paymentFactory;
     private final TransactionEventPublisher eventPublisher;
     private final XmlValidatorFactory xmlValidatorFactory;
 
@@ -40,7 +40,7 @@ public class IngestionService implements IngestionUseCasePort {
      * @param xmlValidatorFactory Le factory pour récupérer le validateur adapté.
      */
     public IngestionService(PaymentParserFactory paymentParserFactory, TransactionEventPublisher eventPublisher, XmlValidatorFactory xmlValidatorFactory) {
-        this.paymentfactory = paymentParserFactory;
+        this.paymentFactory = paymentParserFactory;
         this.eventPublisher = eventPublisher;
         this.xmlValidatorFactory = xmlValidatorFactory;
     }
@@ -68,10 +68,10 @@ public class IngestionService implements IngestionUseCasePort {
         xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
 
         PaymentParser<RawPaymentFile<? extends RawTransaction>> parser =
-                (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentfactory.getParser(paymentType);
+                (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentFactory.getParser(paymentType);
         RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
 
-        res.transactions().forEach(this.eventPublisher::publish);
+        res.transactions().forEach(transaction -> this.eventPublisher.publish(transaction, paymentType));
     }
 
     /**

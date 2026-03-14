@@ -21,7 +21,7 @@ public class KafkaEventPublisher implements TransactionEventPublisher {
 
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void publish(RawTransaction transaction) {
+    public void publish(RawTransaction transaction, String topic) {
         TransactionMapper mapper = mappers.stream()
                 .filter(m -> m.supports(transaction))
                 .findFirst()
@@ -29,6 +29,6 @@ public class KafkaEventPublisher implements TransactionEventPublisher {
 
         byte[] payload = mapper.toBinary(transaction);
 
-        this.kafkaTemplate.send(mapper.getTopicName(), transaction.endToEndId(), payload);
+        this.kafkaTemplate.send(topic, transaction.endToEndId(), payload);
     }
 }

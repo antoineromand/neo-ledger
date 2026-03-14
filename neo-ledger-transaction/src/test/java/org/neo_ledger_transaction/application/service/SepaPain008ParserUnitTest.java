@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
 
 import javax.xml.stream.XMLStreamException;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,7 +18,7 @@ public class SepaPain008ParserUnitTest {
 
     @Test
     @DisplayName("Should parse SEPA PAIN.008 file")
-    void shouldParseSepaPain008() throws FileNotFoundException, XMLStreamException {
+    void shouldParseSepaPain008() throws XMLStreamException {
         InputStream targetStream = getClass().getResourceAsStream("/sepa-008-sample.xml");
         assertNotNull(targetStream);
 
