@@ -3,6 +3,7 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /workspace
 
+COPY version.txt .
 COPY gradlew .
 COPY gradle gradle
 COPY settings.gradle .
