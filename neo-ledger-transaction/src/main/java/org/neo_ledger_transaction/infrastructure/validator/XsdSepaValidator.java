@@ -15,22 +15,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Implémentation de {@link XmlValidator} dédiée aux formats SEPA (ISO 20022).
+ * Implementation of {@link XmlValidator} dedicated to SEPA formats (ISO 20022).
  * <p>
- * Cette classe charge les schémas XSD officiels pour les messages PAIN.008 (Direct Debit)
- * et PAIN.001 (Credit Transfer) afin de garantir la conformité structurelle des fichiers traités.
+ * This class loads official XSD schemas for PAIN.008 (Direct Debit) and
+ * PAIN.001 (Credit Transfer) messages to ensure the structural compliance
+ * of processed files.
  */
 @Component
 public class XsdSepaValidator implements XmlValidator {
 
     /**
-     * Cache des schémas XSD compilés pour optimiser les performances de validation.
+     * Cache of compiled XSD schemas to optimize validation performance.
      */
     private final Map<String, Schema> schemas;
 
     /**
-     * Constructeur initialisant les schémas SEPA supportés.
-     * * @throws SAXException Si une erreur survient lors du chargement ou de la compilation des fichiers XSD.
+     * Constructor initializing the supported SEPA schemas.
+     * * @throws SAXException If an error occurs during the loading or compilation
+     * of the XSD files.
      */
     public XsdSepaValidator() throws SAXException {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -40,11 +42,11 @@ public class XsdSepaValidator implements XmlValidator {
     }
 
     /**
-     * Effectue la validation stricte du flux XML par rapport au schéma SEPA demandé.
+     * Performs strict validation of the XML stream against the requested SEPA schema.
      *
-     * @param xmlStream  Le flux XML à valider.
-     * @param schemaType Le type de schéma cible ("SEPA_PAIN_008" ou "SEPA_PAIN_001").
-     * @throws ValidationException Si le XML est invalide ou si le schéma est introuvable.
+     * @param xmlStream  The XML stream to validate.
+     * @param schemaType The target schema type ("SEPA_PAIN_008" or "SEPA_PAIN_001").
+     * @throws ValidationException If the XML is invalid or if the schema configuration is missing.
      */
     @Override
     public void validate(InputStream xmlStream, String schemaType) {
@@ -58,15 +60,14 @@ public class XsdSepaValidator implements XmlValidator {
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(xmlStream));
         } catch (Exception e) {
-            throw new ValidationException("Error during validation : " + e.getMessage(), e);
+            throw new ValidationException("Error during validation: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Indique si le format est géré par ce validateur SEPA.
-     * * @param format Identifiant du format.
-     *
-     * @return {@code true} pour les formats PAIN.008 et PAIN.001.
+     * Indicates whether the format is handled by this SEPA validator.
+     * * @param format The format identifier.
+     * @return {@code true} for PAIN.008 and PAIN.001 formats.
      */
     @Override
     public boolean supports(String format) {

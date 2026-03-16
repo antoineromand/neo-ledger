@@ -4,26 +4,28 @@ import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 
 /**
- * Contrat de base pour le parsing des fichiers de transactions financières.
- * * <p>Chaque implémentation est responsable de l'extraction des données brutes
- * d'un format spécifique (XML, CSV, etc.) vers le modèle de domaine.</p>
- * * @param <T> Le type de fichier de paiement retourné (ex: RawPaymentFile).
+ * Base contract for parsing financial transaction files.
+ * <p>Each implementation is responsible for extracting raw data
+ * from an XML file into the domain model.</p>
+ *
+ * @param <T> The type of payment file returned (e.g., RawPaymentFile).
  */
 public interface PaymentParser<T> {
 
     /**
-     * Analyse le flux d'entrée et le transforme en objet de domaine.
-     * * @param stream Le flux binaire du fichier (doit être ouvert et prêt à la lecture).
+     * Parses the input stream and transforms it into a domain object.
      *
-     * @return L'objet de domaine représentant le fichier parsé.
-     * @throws XMLStreamException En cas d'erreur de lecture ou de format invalide.
+     * @param stream The binary file stream (must be open and ready for reading).
+     * @return The domain object representing the parsed file.
+     * @throws XMLStreamException In case of a reading error or invalid format.
      */
     T parse(InputStream stream) throws XMLStreamException;
 
     /**
-     * Définit si ce parseur est capable de traiter le type de paiement donné.
-     * * @param type L'identifiant du type de paiement (souvent le nom de l'Enum PaymentFileType).
-     * @return true si le format est supporté.
+     * Determines if this parser is capable of handling the given payment type.
+     *
+     * @param type The payment type identifier (often the name of the PaymentFileType Enum).
+     * @return true if the format is supported.
      */
     boolean supports(String type);
 }

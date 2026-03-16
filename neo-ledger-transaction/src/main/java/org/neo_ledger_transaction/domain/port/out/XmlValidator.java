@@ -5,27 +5,28 @@ import jakarta.validation.ValidationException;
 import java.io.InputStream;
 
 /**
- * Port de sortie définissant le contrat pour la validation de documents XML.
+ * Output port defining the contract for XML document validation.
  * <p>
- * Cette interface permet de valider un flux XML par rapport à un schéma spécifique (XSD)
- * et de déterminer la compatibilité du validateur avec un format donné.
+ * This interface provides a mechanism to validate an XML stream against a specific
+ * schema (XSD) and to determine a validator's compatibility with a given format.
  */
 public interface XmlValidator {
 
     /**
-     * Valide le flux XML fourni par rapport au schéma spécifié.
+     * Validates the provided XML stream against the specified schema.
      *
-     * @param xmlStream Le flux de données (InputStream) du document XML à valider.
-     * @param schema    L'identifiant ou le type de schéma à appliquer (ex: "SEPA_PAIN_008").
-     * @throws ValidationException Si le document XML n'est pas conforme au schéma ou si une erreur survient.
+     * @param xmlStream The input stream of the XML document to be validated.
+     * @param schema    The schema identifier or type to apply (e.g., "SEPA_PAIN_008").
+     * @throws ValidationException If the XML document does not conform to the schema
+     * or if an error occurs during processing.
      */
     void validate(InputStream xmlStream, String schema) throws ValidationException;
 
     /**
-     * Détermine si ce validateur est capable de traiter le format spécifié.
+     * Determines whether this validator is capable of processing the specified format.
      *
-     * @param format Le nom du format à vérifier (ex: "SEPA_PAIN_008").
-     * @return {@code true} si le format est supporté, sinon {@code false}.
+     * @param format The name of the format to verify (e.g., "SEPA_PAIN_008").
+     * @return {@code true} if the format is supported, otherwise {@code false}.
      */
     boolean supports(String format);
 }
