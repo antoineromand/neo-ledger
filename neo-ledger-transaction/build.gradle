@@ -26,6 +26,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     // Use JUnit Jupiter for testing.
     testImplementation libs.junit.jupiter
@@ -37,6 +39,7 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 
     implementation 'xerces:xercesImpl:2.12.2'
+
 
     // This dependency is used by the application.
     implementation libs.guava
