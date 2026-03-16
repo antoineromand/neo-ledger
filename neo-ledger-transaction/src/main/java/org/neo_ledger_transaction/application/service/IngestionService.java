@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Service d'application responsable de l'ingestion des fichiers de paiement.
+ * Application service responsible for the ingestion of payment files.
  * <p>
- * Ce service orchestre le processus de détection du format, le parsing des données
- * et la publication des transactions vers les systèmes tiers via un port de sortie.
+ * This service orchestrates the format detection process, data parsing,
+ * and transaction publication to third-party systems via an output port.
  * </p>
  */
 @Service
@@ -34,10 +34,11 @@ public class IngestionService implements IngestionUseCasePort {
     private final XmlValidatorFactory xmlValidatorFactory;
 
     /**
-     * Constructeur pour l'injection des dépendances.
-     * @param paymentParserFactory La factory permettant de récupérer le parseur adapté au type de fichier.
-     * @param eventPublisher Le port de sortie pour la publication des événements de transaction (ex: Kafka).
-     * @param xmlValidatorFactory Le factory pour récupérer le validateur adapté.
+     * Dependency injection constructor.
+     *
+     * @param paymentParserFactory Factory to retrieve the appropriate parser for the file type.
+     * @param eventPublisher       Output port for publishing transaction events (e.g., Kafka).
+     * @param xmlValidatorFactory  Factory to retrieve the appropriate validator.
      */
     public IngestionService(PaymentParserFactory paymentParserFactory, TransactionEventPublisher eventPublisher, XmlValidatorFactory xmlValidatorFactory) {
         this.paymentFactory = paymentParserFactory;
@@ -46,16 +47,17 @@ public class IngestionService implements IngestionUseCasePort {
     }
 
     /**
-     * Exécute le flux complet d'ingestion d'un fichier de paiement.
+     * Executes the complete ingestion workflow for a payment file.
      * <p>
-     * Le processus utilise un {@link ByteArrayInputStream} pour permettre une triple lecture :
-     * 1. Une lecture complète pour détecter le type de fichier (Namespace XML).
-     * 2. Une lecture complète pour valider le XML.
-     * 3. Une lecture complète pour le parsing et l'extraction des transactions.
+     * The process uses a {@link ByteArrayInputStream} to allow three consecutive reads:
+     * 1. A full read to detect the file type (XML Namespace).
+     * 2. A full read to validate the XML structure.
+     * 3. A full read for parsing and transaction extraction.
      * </p>
-     * * @param file Le flux binaire (InputStream) du fichier à traiter.
-     * @throws XMLStreamException Si le contenu XML est invalide ou corrompu.
-     * @throws IOException        En cas de problème de lecture du flux.
+     *
+     * @param file The binary stream (InputStream) of the file to process.
+     * @throws XMLStreamException If the XML content is invalid or corrupted.
+     * @throws IOException        In case of stream reading issues.
      */
     @Override
     public void executeIngestion(InputStream file) throws XMLStreamException, IOException {
@@ -75,15 +77,16 @@ public class IngestionService implements IngestionUseCasePort {
     }
 
     /**
-     * Analyse le début du flux XML pour identifier le Namespace du document.
+     * Analyzes the beginning of the XML stream to identify the document's Namespace.
      * <p>
-     * Cette méthode recherche la balise racine {@code <Document>} et utilise
-     * son URI de namespace pour mapper vers un {@link PaymentFileType}.
+     * This method looks for the {@code <Document>} root tag and uses its
+     * namespace URI to map it to a {@link PaymentFileType}.
      * </p>
-     * * @param stream Le flux à analyser.
-     * @return Le nom (String) du type de paiement détecté.
-     * @throws XMLStreamException Si la structure XML ne permet pas la détection.
-     * @throws IllegalArgumentException Si le namespace détecté est inconnu.
+     *
+     * @param stream The stream to analyze.
+     * @return The name (String) of the detected payment type.
+     * @throws XMLStreamException       If the XML structure does not allow detection.
+     * @throws IllegalArgumentException If the detected namespace is unknown.
      */
     private String detectPaymentType(InputStream stream) throws XMLStreamException {
         XMLInputFactory xif = XMLInputFactory.newFactory();

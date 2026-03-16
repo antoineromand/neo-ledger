@@ -21,28 +21,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parser de fichiers SEPA Direct Debit de type {@code pain.008}.
+ * SEPA Direct Debit file parser for {@code pain.008} format.
  *
  * <p>
- * Cette implémentation utilise l'API StAX (Streaming API for XML) afin de parser
- * les fichiers XML de manière efficace en mémoire.
- * Contrairement à DOM, le document n'est pas chargé entièrement en mémoire.
+ * This implementation uses the StAX (Streaming API for XML) API to parse
+ * XML files efficiently. Unlike DOM, the document is not loaded
+ * entirely into memory, ensuring high performance for large files.
  * </p>
  *
  * <p>
- * Le parser extrait :
+ * The parser extracts:
  * <ul>
- *     <li>les informations globales du fichier ({@code GrpHdr})</li>
- *     <li>les blocs de paiement ({@code PmtInf})</li>
- *     <li>les transactions individuelles ({@code DrctDbtTxInf})</li>
+ * <li>Global file information ({@code GrpHdr})</li>
+ * <li>Payment information blocks ({@code PmtInf})</li>
+ * <li>Individual transaction details ({@code DrctDbtTxInf})</li>
  * </ul>
  * </p>
  *
  * <p>
- * Le résultat est encapsulé dans un {@link RawPaymentFile} contenant :
+ * The result is wrapped in a {@link RawPaymentFile} containing:
  * <ul>
- *     <li>un {@link FileHeader}</li>
- *     <li>une liste de {@link RawSepaTransaction}</li>
+ * <li>A {@link FileHeader}</li>
+ * <li>A list of {@link RawSepaTransaction} objects</li>
  * </ul>
  * </p>
  */
@@ -50,11 +50,11 @@ import java.util.List;
 public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTransaction>> {
 
     /**
-     * Parse un flux XML correspondant à un fichier SEPA {@code pain.008}.
+     * Parses an XML stream corresponding to a SEPA {@code pain.008} file.
      *
-     * @param stream flux XML en entrée
-     * @return représentation brute du fichier avec header et transactions
-     * @throws XMLStreamException si le flux XML est mal formé
+     * @param stream The input XML stream.
+     * @return A raw representation of the file, including header and transactions.
+     * @throws XMLStreamException If the XML stream is malformed.
      */
     @Override
     public RawPaymentFile<RawSepaTransaction> parse(InputStream stream) throws XMLStreamException {
@@ -84,20 +84,20 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Parse le bloc {@code GrpHdr} (Group Header).
+     * Parses the {@code GrpHdr} (Group Header) block.
      *
      * <p>
-     * Ce bloc contient les métadonnées globales du fichier SEPA :
+     * This block contains the global metadata for the SEPA file:
      * <ul>
-     *     <li>l'identifiant du message</li>
-     *     <li>le nombre total de transactions</li>
-     *     <li>la date/heure de création du fichier</li>
+     * <li>Message identifier</li>
+     * <li>Total number of transactions</li>
+     * <li>File creation date and time</li>
      * </ul>
      * </p>
      *
-     * @param r lecteur XML positionné sur {@code GrpHdr}
-     * @return header du fichier SEPA
-     * @throws XMLStreamException en cas d'erreur de parsing
+     * @param r XML reader positioned at {@code GrpHdr}.
+     * @return The SEPA file header.
+     * @throws XMLStreamException In case of a parsing error.
      */
     private FileHeader parseGrpHdr(XMLStreamReader r) throws XMLStreamException {
         String msgId = null;
@@ -124,16 +124,16 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Parse un bloc {@code PmtInf} contenant un groupe de transactions.
+     * Parses a {@code PmtInf} block containing a group of transactions.
      *
      * <p>
-     * Les informations présentes dans ce bloc sont communes aux transactions
-     * qu'il contient (IBAN créancier, date de collecte, identifiant créancier).
+     * Information in this block is shared across all transactions
+     * it contains (Creditor IBAN, collection date, creditor identifier).
      * </p>
      *
-     * @param r lecteur XML positionné sur {@code PmtInf}
-     * @return liste des transactions contenues dans ce bloc
-     * @throws XMLStreamException en cas d'erreur de parsing
+     * @param r XML reader positioned at {@code PmtInf}.
+     * @return A list of transactions contained in this block.
+     * @throws XMLStreamException In case of a parsing error.
      */
     private List<RawSepaTransaction> parsePmtInf(XMLStreamReader r) throws XMLStreamException {
         List<RawSepaTransaction> transactions = new ArrayList<>();
@@ -170,15 +170,15 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Parse une transaction individuelle {@code DrctDbtTxInf}.
+     * Parses an individual {@code DrctDbtTxInf} transaction.
      *
-     * @param r lecteur XML positionné sur la transaction
-     * @param creditorIban IBAN du créancier (hérité du bloc PmtInf)
-     * @param isInstant indicateur de paiement instantané
-     * @param groupDate date de collecte du groupe
-     * @param creditorSchemeId identifiant créancier SEPA (ICS)
-     * @return transaction SEPA brute
-     * @throws XMLStreamException en cas d'erreur de parsing
+     * @param r                XML reader positioned at the transaction.
+     * @param creditorIban     Creditor's IBAN (inherited from the PmtInf block).
+     * @param isInstant        Instant payment indicator.
+     * @param groupDate        Collection date for the group.
+     * @param creditorSchemeId SEPA Creditor Identifier (ICS).
+     * @return A raw SEPA transaction object.
+     * @throws XMLStreamException In case of a parsing error.
      */
     private RawSepaTransaction parseTransaction(
             XMLStreamReader r,
@@ -233,12 +233,12 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Extrait un IBAN à partir d'un bloc {@code CdtrAcct} ou {@code DbtrAcct}.
+     * Extracts an IBAN from a {@code CdtrAcct} or {@code DbtrAcct} block.
      *
-     * @param r lecteur XML
-     * @param endTag balise de fermeture attendue
-     * @return IBAN extrait ou null
-     * @throws XMLStreamException erreur XML
+     * @param r      XML reader.
+     * @param endTag The expected closing tag.
+     * @return The extracted IBAN or null.
+     * @throws XMLStreamException XML error.
      */
     private String parseAccountIban(XMLStreamReader r, String endTag) throws XMLStreamException {
         String iban = null;
@@ -257,11 +257,11 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Parse les informations de type de paiement.
+     * Parses payment type information.
      *
-     * @param r lecteur XML
-     * @return true si service level INST détecté
-     * @throws XMLStreamException erreur XML
+     * @param r XML reader.
+     * @return {@code true} if service level "INST" is detected.
+     * @throws XMLStreamException XML error.
      */
     private boolean parsePaymentTypeInformation(XMLStreamReader r) throws XMLStreamException {
         boolean isInstant = false;
@@ -283,11 +283,11 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Extrait l'identifiant créancier SEPA (ICS).
+     * Extracts the SEPA Creditor Identifier (ICS).
      *
-     * @param r lecteur XML
-     * @return identifiant ICS
-     * @throws XMLStreamException erreur XML
+     * @param r XML reader.
+     * @return The ICS identifier.
+     * @throws XMLStreamException XML error.
      */
     private String parseCreditorSchemeId(XMLStreamReader r) throws XMLStreamException {
         String creditorSchemeId = null;
@@ -306,11 +306,11 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Parse un bloc {@code Othr} contenant un identifiant générique.
+     * Parses an {@code Othr} block containing a generic identifier.
      *
-     * @param r lecteur XML
-     * @return valeur de l'identifiant
-     * @throws XMLStreamException erreur XML
+     * @param r XML reader.
+     * @return The identifier value.
+     * @throws XMLStreamException XML error.
      */
     private String parseOtherIdentification(XMLStreamReader r) throws XMLStreamException {
         String id = null;
@@ -329,11 +329,11 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Extrait la RUM (Référence Unique de Mandat).
+     * Extracts the Mandate ID (Unique Mandate Reference).
      *
-     * @param r lecteur XML
-     * @return identifiant de mandat
-     * @throws XMLStreamException erreur XML
+     * @param r XML reader.
+     * @return The mandate identifier.
+     * @throws XMLStreamException XML error.
      */
     private String parseMandateId(XMLStreamReader r) throws XMLStreamException {
         String mandateId = null;
@@ -352,11 +352,11 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Extrait l'information de remise non structurée.
+     * Extracts unstructured remittance information.
      *
-     * @param r lecteur XML
-     * @return texte de remittance
-     * @throws XMLStreamException erreur XML
+     * @param r XML reader.
+     * @return The remittance text.
+     * @throws XMLStreamException XML error.
      */
     private String parseRemittanceInfo(XMLStreamReader r) throws XMLStreamException {
         String remittanceInfo = null;
@@ -375,10 +375,10 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Indique si ce parser supporte le type de fichier donné.
+     * Indicates whether this parser supports the given file type.
      *
-     * @param type type du fichier de paiement
-     * @return true si le parser peut traiter ce type
+     * @param type The payment file type.
+     * @return {@code true} if the parser can process this type.
      */
     @Override
     public boolean supports(String type) {
