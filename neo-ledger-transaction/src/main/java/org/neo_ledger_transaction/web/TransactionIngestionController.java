@@ -1,7 +1,6 @@
 package org.neo_ledger_transaction.web;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
@@ -32,11 +31,7 @@ public class TransactionIngestionController {
     @PostMapping(consumes = MediaType.APPLICATION_XML_VALUE)
     @Operation(
             summary = "Ingest payment file",
-            description = "Ingest a payment to ingest and process transactions.",
-            operationId = "ingestPaymentFile",
-            parameters = {
-                    @Parameter(name = "paymentFile", description = "A payment file in a XML format.")
-            }
+            description = "Ingest a payment to ingest and process transactions."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Your payment file has been ingested")
