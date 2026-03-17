@@ -1,6 +1,7 @@
 package org.neo_ledger_transaction.application.service;
 
 import org.neo_ledger_transaction.application.PaymentFileType;
+import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
@@ -11,6 +12,7 @@ import org.neo_ledger_transaction.domain.port.out.XmlValidator;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.springframework.stereotype.Service;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -60,7 +62,7 @@ public class IngestionService implements IngestionUseCasePort {
      * @throws IOException        In case of stream reading issues.
      */
     @Override
-    public void executeIngestion(InputStream file) throws XMLStreamException, IOException {
+    public void executeIngestion(InputStream file) throws XMLStreamException, IOException, ParserConfigurationException {
         byte[] xmlContent = file.readAllBytes();
 
         String paymentType = this.detectPaymentType(new ByteArrayInputStream(xmlContent));
@@ -86,7 +88,7 @@ public class IngestionService implements IngestionUseCasePort {
      * @param stream The stream to analyze.
      * @return The name (String) of the detected payment type.
      * @throws XMLStreamException       If the XML structure does not allow detection.
-     * @throws IllegalArgumentException If the detected namespace is unknown.
+     * @throws UnsupportedPaymentFormatException If the detected namespace is unknown.
      */
     private String detectPaymentType(InputStream stream) throws XMLStreamException {
         XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -94,11 +96,15 @@ public class IngestionService implements IngestionUseCasePort {
         xif.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
         XMLStreamReader r = xif.createXMLStreamReader(stream);
 
-        while (r.hasNext()) {
-            if (r.next() == XMLStreamConstants.START_ELEMENT && "Document".equals(r.getLocalName())) {
-                return PaymentFileType.fromNamespace(r.getNamespaceURI()).name();
+        try {
+            while (r.hasNext()) {
+                if (r.next() == XMLStreamConstants.START_ELEMENT && "Document".equals(r.getLocalName())) {
+                    return PaymentFileType.fromNamespace(r.getNamespaceURI()).map(Enum::name).orElseThrow(UnsupportedPaymentFormatException::new);
+                }
             }
+        } finally {
+            r.close();
         }
-        throw new IllegalArgumentException("Unknown payment type");
+        throw new UnsupportedPaymentFormatException();
     }
 }

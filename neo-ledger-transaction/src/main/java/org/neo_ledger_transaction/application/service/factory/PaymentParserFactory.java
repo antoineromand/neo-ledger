@@ -3,6 +3,7 @@ package org.neo_ledger_transaction.application.service.factory;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.springframework.stereotype.Component;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.util.List;
 
 /**
@@ -30,13 +31,13 @@ public class PaymentParserFactory {
      *
      * @param namespace The format identifier (e.g., an XML namespace or payment type).
      * @return A {@link PaymentParser} implementation capable of handling the format.
-     * @throws IllegalArgumentException If no supporting parser is found for the given namespace.
+     * @throws ParserConfigurationException If no supporting parser is configured for the given namespace.
      */
-    public PaymentParser<?> getParser(String namespace) {
+    public PaymentParser<?> getParser(String namespace) throws ParserConfigurationException {
         return paymentParsers
                 .stream()
                 .filter(p -> p.supports(namespace))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Payment type not supported: " + namespace));
+                .orElseThrow(() -> new ParserConfigurationException("Parser not implemented"));
     }
 }

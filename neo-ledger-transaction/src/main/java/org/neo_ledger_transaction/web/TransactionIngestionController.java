@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class TransactionIngestionController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Your payment file has been ingested")
     })
-    public ResponseEntity<String> ingestPaymentFile(@RequestBody String paymentFile) throws XMLStreamException, IOException {
+    public ResponseEntity<String> ingestPaymentFile(@RequestBody String paymentFile) throws XMLStreamException, IOException, ParserConfigurationException {
         InputStream inputStream = new ByteArrayInputStream(paymentFile.getBytes(StandardCharsets.UTF_8));
         this.ingestionUseCasePort.executeIngestion(inputStream);
         return ResponseEntity.ok().body("Your payment file has been ingested");
