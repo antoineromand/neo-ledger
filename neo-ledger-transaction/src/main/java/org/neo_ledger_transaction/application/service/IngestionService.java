@@ -1,6 +1,8 @@
 package org.neo_ledger_transaction.application.service;
 
 import org.neo_ledger_transaction.application.PaymentFileType;
+import org.neo_ledger_transaction.application.exceptions.EventPublishingException;
+import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
@@ -58,24 +60,44 @@ public class IngestionService implements IngestionUseCasePort {
      * </p>
      *
      * @param file The binary stream (InputStream) of the file to process.
-     * @throws XMLStreamException If the XML content is invalid or corrupted.
-     * @throws IOException        In case of stream reading issues.
+     * @throws EventPublishingException If there is any error while publishing the transaction.
+     * @throws InputStreamTechnicalException If there is any error while reading input stream.
      */
     @Override
-    public void executeIngestion(InputStream file) throws XMLStreamException, IOException, ParserConfigurationException {
-        byte[] xmlContent = file.readAllBytes();
+    public void executeIngestion(InputStream file) throws ParserConfigurationException {
+        try {
+            byte[] xmlContent = file.readAllBytes();
 
-        String paymentType = this.detectPaymentType(new ByteArrayInputStream(xmlContent));
+            String paymentType = this.detectPaymentType(new ByteArrayInputStream(xmlContent));
 
-        XmlValidator xmlValidator = this.xmlValidatorFactory.getValidator(paymentType);
+            XmlValidator xmlValidator = this.xmlValidatorFactory.getValidator(paymentType);
 
-        xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
+            xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
 
-        PaymentParser<RawPaymentFile<? extends RawTransaction>> parser =
-                (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentFactory.getParser(paymentType);
-        RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
+            PaymentParser<RawPaymentFile<? extends RawTransaction>> parser =
+                    (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentFactory.getParser(paymentType);
+            RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
 
-        res.transactions().forEach(transaction -> this.eventPublisher.publish(transaction, paymentType));
+            this.publish(res, paymentType);
+        } catch (IOException | XMLStreamException e) {
+            throw new InputStreamTechnicalException(e);
+        }
+
+    }
+
+    /**
+     * Publish a transaction to an event
+     *
+     * @param res         The parsed transaction from the input stream.
+     * @param paymentType The name of the event (topic)
+     * @throws EventPublishingException If there is any error while publishing the transaction.
+     */
+    private void publish(RawPaymentFile<? extends RawTransaction> res, String paymentType) {
+        try {
+            res.transactions().forEach(transaction -> this.eventPublisher.publish(transaction, paymentType));
+        } catch (Exception e) {
+            throw new EventPublishingException(e);
+        }
     }
 
     /**

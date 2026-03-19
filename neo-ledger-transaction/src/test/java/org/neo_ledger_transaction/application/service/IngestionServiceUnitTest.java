@@ -14,7 +14,6 @@ import org.neo_ledger_transaction.infrastructure.validator.XsdSepaValidator;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +42,7 @@ public class IngestionServiceUnitTest {
 
     @Test
     @DisplayName("Should validate, parse SEPA PAIN.008 and publish all transactions")
-    void should_validate_parse_pain_008_and_publish_transactions() throws IOException, XMLStreamException, ParserConfigurationException {
+    void should_validate_parse_pain_008_and_publish_transactions() throws IOException, ParserConfigurationException {
         try (InputStream targetStream = getClass().getResourceAsStream("/sepa-008-sample.xml")) {
             assertNotNull(targetStream, "Test file sepa-008-sample.xml not found");
 
@@ -64,7 +63,7 @@ public class IngestionServiceUnitTest {
 
     @Test
     @DisplayName("Should validate, parse SEPA PAIN.001 and publish all transactions")
-    void should_validate_parse_pain_001_and_publish_transactions() throws IOException, XMLStreamException, ParserConfigurationException {
+    void should_validate_parse_pain_001_and_publish_transactions() throws IOException, ParserConfigurationException {
         try (InputStream targetStream = getClass().getResourceAsStream("/sepa-001-sample.xml")) {
             assertNotNull(targetStream, "Test file sepa-001-sample.xml not found");
 
