@@ -109,6 +109,18 @@ services:
     networks:
       - kafka-net
 
+  neo-ledger-transaction-db:
+    image: postgres
+    restart: always
+    ports:
+      - "${NLT_DB_PORT}"
+    environment:
+      POSTGRES_USER: ${NLT_DB_USER}
+      POSTGRES_PASSWORD: ${NLT_DB_PASS}
+      POSTGRES_DB: ${NLT_DB_NAME}
+    volumes:
+      - ./transaction-db-data:/var/lib/postgresql
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -133,3 +145,4 @@ volumes:
   kafka1_data:
   kafka2_data:
   kafka3_data:
+  transaction-db-data:
