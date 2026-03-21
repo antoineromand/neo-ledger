@@ -119,7 +119,7 @@ services:
       POSTGRES_PASSWORD: ${NLT_DB_PASS}
       POSTGRES_DB: ${NLT_DB_NAME}
     volumes:
-      - ./transaction-db-data:/var/lib/postgresql
+      - transaction-db-data:/var/lib/postgresql
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
