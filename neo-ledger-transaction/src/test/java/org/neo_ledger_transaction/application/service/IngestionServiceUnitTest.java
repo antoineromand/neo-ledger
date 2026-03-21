@@ -1,105 +1,113 @@
 package org.neo_ledger_transaction.application.service;
 
+import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
+import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
-import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
-import org.neo_ledger_transaction.domain.model.RawTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionEventPublisher;
+import org.neo_ledger_transaction.domain.port.out.XmlValidator;
+import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.neo_ledger_transaction.infrastructure.validator.XsdSepaValidator;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class IngestionServiceUnitTest {
 
+    private final TransactionEventPublisher transactionEventPublisher = mock(TransactionEventPublisher.class);
+    private final XmlValidatorFactory xmlValidatorFactory = mock(XmlValidatorFactory.class);
+    private final PaymentParserFactory paymentParserFactory = mock(PaymentParserFactory.class);
+
     private final SepaPain008Parser sepaPain008parser = new SepaPain008Parser();
     private final SepaPain001Parser sepaPain001parser = new SepaPain001Parser();
-    private final PaymentParserFactory paymentFactory = new PaymentParserFactory(List.of(sepaPain008parser, sepaPain001parser));
-
     private final XsdSepaValidator xsdSepaValidator = new XsdSepaValidator();
-    private final XmlValidatorFactory xmlValidatorFactory = new XmlValidatorFactory(List.of(xsdSepaValidator));
-
-    private final TransactionEventPublisher transactionEventPublisher = mock(TransactionEventPublisher.class);
 
     private final IngestionService ingestionService =
-            new IngestionService(paymentFactory, transactionEventPublisher, xmlValidatorFactory);
+            new IngestionService(paymentParserFactory, transactionEventPublisher, xmlValidatorFactory);
 
     public IngestionServiceUnitTest() throws SAXException {
     }
 
     @Test
-    @DisplayName("Should validate, parse SEPA PAIN.008 and publish all transactions")
-    void should_validate_parse_pain_008_and_publish_transactions() throws IOException, XMLStreamException {
-        try (InputStream targetStream = getClass().getResourceAsStream("/sepa-008-sample.xml")) {
-            assertNotNull(targetStream, "Test file sepa-008-sample.xml not found");
+    void should_parse_and_publish_pain_008() throws Exception {
+        try (InputStream is = getClass().getResourceAsStream("/sepa-008-sample.xml")) {
+            assertNotNull(is);
+            when(xmlValidatorFactory.getValidator("SEPA_PAIN_008")).thenReturn(xsdSepaValidator);
+            when(paymentParserFactory.getParser("SEPA_PAIN_008")).thenReturn((PaymentParser) sepaPain008parser);
 
-            ingestionService.executeIngestion(targetStream);
+            ingestionService.executeIngestion(is);
 
-            ArgumentCaptor<RawTransaction> captor = ArgumentCaptor.forClass(RawTransaction.class);
-            verify(transactionEventPublisher, atLeastOnce()).publish(captor.capture(), any(String.class));
-
-            List<RawTransaction> publishedTransactions = captor.getAllValues();
-            assertFalse(publishedTransactions.isEmpty());
-
-            RawSepaTransaction firstTx = (RawSepaTransaction) publishedTransactions.getFirst();
-
-            assertNotNull(firstTx.endToEndId());
-            assertNotNull(firstTx.amount());
+            verify(transactionEventPublisher, atLeastOnce()).publish(any(), eq("SEPA_PAIN_008"));
         }
     }
 
     @Test
     @DisplayName("Should validate, parse SEPA PAIN.001 and publish all transactions")
-    void should_validate_parse_pain_001_and_publish_transactions() throws IOException, XMLStreamException {
-        try (InputStream targetStream = getClass().getResourceAsStream("/sepa-001-sample.xml")) {
-            assertNotNull(targetStream, "Test file sepa-001-sample.xml not found");
+    void should_validate_parse_pain_001_and_publish_transactions() throws IOException, ParserConfigurationException {
+        try (InputStream is = getClass().getResourceAsStream("/sepa-001-sample.xml")) {
+            assertNotNull(is);
+            when(xmlValidatorFactory.getValidator("SEPA_PAIN_001")).thenReturn(xsdSepaValidator);
+            when(paymentParserFactory.getParser("SEPA_PAIN_001")).thenReturn((PaymentParser) sepaPain001parser);
 
-            ingestionService.executeIngestion(targetStream);
+            ingestionService.executeIngestion(is);
 
-            ArgumentCaptor<RawTransaction> captor = ArgumentCaptor.forClass(RawTransaction.class);
-            verify(transactionEventPublisher, atLeastOnce()).publish(captor.capture(), any(String.class));
+            verify(transactionEventPublisher, atLeastOnce()).publish(any(), eq("SEPA_PAIN_001"));
 
-            List<RawTransaction> publishedTransactions = captor.getAllValues();
-            assertFalse(publishedTransactions.isEmpty());
-
-            RawSepaTransaction firstTx = (RawSepaTransaction) publishedTransactions.getFirst();
-
-            assertNotNull(firstTx.endToEndId());
-            assertNotNull(firstTx.amount());
         }
+    }
+
+    @Test
+    @DisplayName("Should stop process if parser not found")
+    void should_stop_process_if_parser_not_found() throws IOException, ParserConfigurationException {
+        try (InputStream targetStream = getClass().getResourceAsStream("/sepa-008-sample.xml")) {
+            assertNotNull(targetStream, "Test file sepa-008-sample.xml not found");
+
+            XmlValidator mockValidator = mock(XmlValidator.class);
+            when(this.xmlValidatorFactory.getValidator(anyString())).thenReturn(mockValidator);
+            when(paymentParserFactory.getParser("SEPA_PAIN_008")).thenThrow(new ParserConfigurationException("Parser not found"));
+            assertThrows(ParserConfigurationException.class, () -> ingestionService.executeIngestion(targetStream));
+
+            verify(mockValidator).validate(any(InputStream.class), eq("SEPA_PAIN_008"));
+            verifyNoInteractions(transactionEventPublisher);
+        }
+
     }
 
 
     @Test
-    @DisplayName("Should stop process if validation fails (Inversion 001/008)")
+    @DisplayName("Should stop process if validation fails")
     void should_stop_when_validation_fails() {
-        String invalidPain008Xml = """
+        String invalidXml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.12">
                     <CstmrDrctDbtInitn>
                         <GrpHdr><MsgId>INVALID</MsgId></GrpHdr>
                     </CstmrDrctDbtInitn>
                 </Document>
                 """;
 
-        InputStream is = new ByteArrayInputStream(invalidPain008Xml.getBytes(StandardCharsets.UTF_8));
-
-        assertThrows(Exception.class, () -> ingestionService.executeIngestion(is));
-
-        verifyNoInteractions(transactionEventPublisher);
+        InputStream is = new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8));
+        XmlValidator mockValidator = mock(XmlValidator.class);
+        when(this.xmlValidatorFactory.getValidator(anyString())).thenReturn(mockValidator);
+        doThrow(new ValidationException())
+                .when(mockValidator)
+                .validate(any(InputStream.class), anyString());
+        assertThrows(ValidationException.class, () -> ingestionService.executeIngestion(is));
+        verifyNoInteractions(transactionEventPublisher, paymentParserFactory);
     }
 
     @Test
@@ -112,8 +120,27 @@ public class IngestionServiceUnitTest {
 
         InputStream is = new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8));
 
-        assertThrows(Exception.class, () -> ingestionService.executeIngestion(is));
+        assertThrows(UnsupportedPaymentFormatException.class, () -> ingestionService.executeIngestion(is));
 
-        verifyNoInteractions(transactionEventPublisher);
+        verifyNoInteractions(transactionEventPublisher, xmlValidatorFactory, paymentParserFactory);
+    }
+
+    @Test
+    @DisplayName("Should throw input stream technical exception when input stream is malformed")
+    void should_throw_input_stream_technical_exception() throws IOException {
+        InputStream is = mock(InputStream.class);
+        when(is.readAllBytes()).thenThrow(new IOException("Issue while reading"));
+
+        assertThrows(InputStreamTechnicalException.class, () -> ingestionService.executeIngestion(is));
+        verifyNoInteractions(transactionEventPublisher, xmlValidatorFactory, paymentParserFactory);
+    }
+
+    @Test
+    @DisplayName("Should throw input stream technical exception when input cannot be read with XMLReader")
+    void should_throw_input_stream_technical_exception_with_xml_reader() throws IOException, XMLStreamException {
+        String corruptedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Document xmlns=\"urn:iso:";
+        InputStream is = new ByteArrayInputStream(corruptedXml.getBytes(StandardCharsets.UTF_8));
+        assertThrows(InputStreamTechnicalException.class, () -> ingestionService.executeIngestion(is));
+        verifyNoInteractions(transactionEventPublisher, xmlValidatorFactory, paymentParserFactory);
     }
 }

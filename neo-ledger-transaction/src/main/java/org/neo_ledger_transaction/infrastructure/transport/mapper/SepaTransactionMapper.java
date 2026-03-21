@@ -7,10 +7,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SepaTransactionMapper implements TransactionMapper<RawSepaTransaction> {
 
-    private final String topicName;
-
     public SepaTransactionMapper() {
-        this.topicName = "sepa-transaction-topic";
+
     }
 
     @Override

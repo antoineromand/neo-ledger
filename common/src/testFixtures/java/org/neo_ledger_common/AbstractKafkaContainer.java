@@ -20,8 +20,6 @@ public abstract class AbstractKafkaContainer {
 
     @DynamicPropertySource
     static void kafkaProperties(DynamicPropertyRegistry registry) {
-        // Cette ligne "branche" l'adresse du conteneur dynamique
-        // sur la clé attendue par Spring Boot.
         registry.add("spring.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
     }
 }

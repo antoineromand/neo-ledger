@@ -2,6 +2,7 @@ package org.neo_ledger_transaction.application;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public enum PaymentFileType {
     SEPA_PAIN_008(List.of(
@@ -17,10 +18,9 @@ public enum PaymentFileType {
         this.namespaces = namespaces;
     }
 
-    public static PaymentFileType fromNamespace(String namespace) {
+    public static Optional<PaymentFileType> fromNamespace(String namespace) {
         return Arrays.stream(values())
                 .filter(type -> type.namespaces.contains(namespace))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Namespace inconnu : " + namespace));
+                .findFirst();
     }
 }

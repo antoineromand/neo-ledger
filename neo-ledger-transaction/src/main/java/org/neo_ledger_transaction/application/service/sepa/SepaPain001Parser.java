@@ -21,12 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parser de fichiers SEPA Credit Transfer de type {@code pain.001}.
- * Gère la version 001.001.12.
+ * SEPA Credit Transfer file parser for {@code pain.001} format.
+ * <p>
+ * This implementation handles version 001.001.12 and follows the StAX
+ * streaming model to maintain a low memory footprint during processing.
+ * </p>
  */
 @Component
 public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTransaction>> {
 
+    /**
+     * Parses a SEPA Credit Transfer XML stream.
+     *
+     * @param stream The input XML stream.
+     * @return A raw representation of the payment file.
+     * @throws XMLStreamException If the XML content is malformed.
+     */
     @Override
     public RawPaymentFile<RawSepaTransaction> parse(InputStream stream) throws XMLStreamException {
         XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -50,6 +60,13 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
         return new RawPaymentFile<>(header, allTransactions);
     }
 
+    /**
+     * Parses the {@code GrpHdr} (Group Header) element.
+     *
+     * @param r XML reader positioned at {@code GrpHdr}.
+     * @return The file header metadata.
+     * @throws XMLStreamException In case of a parsing error.
+     */
     private FileHeader parseGrpHdr(XMLStreamReader r) throws XMLStreamException {
         String msgId = null;
         int count = 0;
@@ -70,6 +87,13 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
         return new FileHeader(msgId, count, dt);
     }
 
+    /**
+     * Parses a {@code PmtInf} (Payment Information) block.
+     *
+     * @param r XML reader positioned at {@code PmtInf}.
+     * @return A list of extracted credit transfer transactions.
+     * @throws XMLStreamException In case of a parsing error.
+     */
     private List<RawSepaTransaction> parsePmtInf(XMLStreamReader r) throws XMLStreamException {
         List<RawSepaTransaction> transactions = new ArrayList<>();
 
@@ -98,6 +122,16 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
         return transactions;
     }
 
+    /**
+     * Parses a {@code CdtTrfTxInf} (Credit Transfer Transaction Information) block.
+     *
+     * @param r          XML reader positioned at the transaction level.
+     * @param debtorIban Debtor's IBAN (inherited from the group).
+     * @param isInstant  Flag indicating an instant payment.
+     * @param groupDate  The requested execution date.
+     * @return A raw SEPA transaction object.
+     * @throws XMLStreamException In case of a parsing error.
+     */
     private RawSepaTransaction parseTransaction(
             XMLStreamReader r,
             String debtorIban,
@@ -182,7 +216,12 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
     }
 
     /**
-     * Gère le bloc de choix Date ou DateTime pour ReqdExctnDt.
+     * Handles the Date or DateTime choice for the {@code ReqdExctnDt} field.
+     *
+     * @param r      XML reader.
+     * @param endTag The expected closing tag.
+     * @return The extracted LocalDate.
+     * @throws XMLStreamException In case of a parsing error.
      */
     private LocalDate parseDateChoice(XMLStreamReader r, String endTag) throws XMLStreamException {
         LocalDate date = null;
@@ -192,7 +231,6 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
                 if ("Dt".equals(r.getLocalName())) {
                     date = LocalDate.parse(r.getElementText());
                 } else if ("DtTm".equals(r.getLocalName())) {
-                    date = LocalDateTime.parse(r.getElementText(), DateTimeFormatter.ISO_DATE_TIME).toLocalDate();
                     date = LocalDateTime.parse(r.getElementText(), DateTimeFormatter.ISO_DATE_TIME).toLocalDate();
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && endTag.equals(r.getLocalName())) {

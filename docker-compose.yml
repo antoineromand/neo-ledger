@@ -96,7 +96,7 @@ services:
       - kafka3_data:/var/lib/kafka/data
 
   neo-ledger-transaction-api:
-    image: antoineromand/neo-ledger-transaction
+    image: antoineromand/neo-ledger-transaction:latest
     container_name: transaction-api
     ports:
       - 3000:3000
