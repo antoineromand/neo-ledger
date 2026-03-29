@@ -9,9 +9,9 @@ import org.neo_ledger_transaction.application.service.factory.PaymentParserFacto
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
-import org.neo_ledger_transaction.domain.port.out.TransactionEventPublisher;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.neo_ledger_transaction.infrastructure.transport.publisher.TransactionMapperFactory;
 import org.neo_ledger_transaction.infrastructure.validator.XsdSepaValidator;
 import org.xml.sax.SAXException;
 
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 public class IngestionServiceUnitTest {
 
-    private final TransactionEventPublisher transactionEventPublisher = mock(TransactionEventPublisher.class);
+    private final TransactionMapperFactory transactionEventPublisher = mock(TransactionMapperFactory.class);
     private final XmlValidatorFactory xmlValidatorFactory = mock(XmlValidatorFactory.class);
     private final PaymentParserFactory paymentParserFactory = mock(PaymentParserFactory.class);
 
@@ -51,7 +51,7 @@ public class IngestionServiceUnitTest {
 
             ingestionService.executeIngestion(is);
 
-            verify(transactionEventPublisher, atLeastOnce()).publish(any(), eq("SEPA_PAIN_008"));
+            verify(transactionEventPublisher, atLeastOnce()).toBinary(any());
         }
     }
 
@@ -65,7 +65,7 @@ public class IngestionServiceUnitTest {
 
             ingestionService.executeIngestion(is);
 
-            verify(transactionEventPublisher, atLeastOnce()).publish(any(), eq("SEPA_PAIN_001"));
+            verify(transactionEventPublisher, atLeastOnce()).toBinary(any());
 
         }
     }

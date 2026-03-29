@@ -5,7 +5,7 @@ import org.neo_ledger_transaction.domain.model.RawTransaction;
 /**
  * Output port for publishing transaction-related events.
  */
-public interface TransactionEventPublisher {
+public interface TransactionMapperFactoryPort {
 
     /**
      * Publishes a transaction in a format-agnostic manner.
@@ -15,7 +15,6 @@ public interface TransactionEventPublisher {
      * </p>
      *
      * @param transaction The raw transaction data to be published.
-     * @param topic       The destination topic or channel where the event should be sent.
      */
-    void publish(RawTransaction transaction, String topic);
+    byte[] toBinary(RawTransaction transaction);
 }

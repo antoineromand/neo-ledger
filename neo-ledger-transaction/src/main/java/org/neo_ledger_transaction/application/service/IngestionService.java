@@ -9,7 +9,7 @@ import org.neo_ledger_transaction.application.service.factory.PaymentParserFacto
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.domain.model.RawPaymentFile;
 import org.neo_ledger_transaction.domain.model.RawTransaction;
-import org.neo_ledger_transaction.domain.port.out.TransactionEventPublisher;
+import org.neo_ledger_transaction.domain.port.out.TransactionMapperFactoryPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.springframework.stereotype.Service;
@@ -34,19 +34,18 @@ import java.io.InputStream;
 public class IngestionService implements IngestionUseCasePort {
 
     private final PaymentParserFactory paymentFactory;
-    private final TransactionEventPublisher eventPublisher;
+    private final TransactionMapperFactoryPort transactionMapperFactory;
     private final XmlValidatorFactory xmlValidatorFactory;
 
     /**
      * Dependency injection constructor.
      *
      * @param paymentParserFactory Factory to retrieve the appropriate parser for the file type.
-     * @param eventPublisher       Output port for publishing transaction events (e.g., Kafka).
      * @param xmlValidatorFactory  Factory to retrieve the appropriate validator.
      */
-    public IngestionService(PaymentParserFactory paymentParserFactory, TransactionEventPublisher eventPublisher, XmlValidatorFactory xmlValidatorFactory) {
+    public IngestionService(PaymentParserFactory paymentParserFactory, TransactionMapperFactoryPort transactionMapperFactory, XmlValidatorFactory xmlValidatorFactory) {
         this.paymentFactory = paymentParserFactory;
-        this.eventPublisher = eventPublisher;
+        this.transactionMapperFactory = transactionMapperFactory;
         this.xmlValidatorFactory = xmlValidatorFactory;
     }
 
@@ -78,7 +77,7 @@ public class IngestionService implements IngestionUseCasePort {
                     (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentFactory.getParser(paymentType);
             RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
 
-            this.publish(res, paymentType);
+            this.publish(res);
         } catch (IOException | XMLStreamException e) {
             throw new InputStreamTechnicalException(e);
         }
@@ -89,12 +88,13 @@ public class IngestionService implements IngestionUseCasePort {
      * Publish a transaction to an event
      *
      * @param res         The parsed transaction from the input stream.
-     * @param paymentType The name of the event (topic)
      * @throws EventPublishingException If there is any error while publishing the transaction.
      */
-    private void publish(RawPaymentFile<? extends RawTransaction> res, String paymentType) {
+    private void publish(RawPaymentFile<? extends RawTransaction> res) {
         try {
-            res.transactions().forEach(transaction -> this.eventPublisher.publish(transaction, paymentType));
+            res.transactions().forEach((transaction) -> {
+                byte[] binary = this.transactionMapperFactory.toBinary(transaction);
+            });
         } catch (Exception e) {
             throw new EventPublishingException(e);
         }
