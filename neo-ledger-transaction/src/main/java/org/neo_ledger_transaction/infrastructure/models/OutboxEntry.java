@@ -3,7 +3,9 @@ package org.neo_ledger_transaction.infrastructure.models;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -15,13 +17,13 @@ public class OutboxEntry {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "aggregate_id", nullable = false)
-    private UUID aggregateId;
+    @Column(name = "end_to_end_id", unique = true)
+    private String endToEndId;
 
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
-    @Lob
+    @JdbcTypeCode(Types.VARBINARY)
     @Column(name = "payload", nullable = false, columnDefinition = "BYTEA")
     private byte[] payload;
 
@@ -44,7 +46,7 @@ public class OutboxEntry {
     public OutboxEntry() {
     }
 
-    public OutboxEntry(LocalDateTime processedAt, LocalDateTime createdAt, String lastError, int retryCount, String status, byte[] payload, String eventType, UUID aggregateId, UUID id) {
+    public OutboxEntry(LocalDateTime processedAt, LocalDateTime createdAt, String lastError, int retryCount, String status, byte[] payload, String eventType, String endToEndId, UUID id) {
         this.processedAt = processedAt;
         this.createdAt = createdAt;
         this.lastError = lastError;
@@ -52,7 +54,7 @@ public class OutboxEntry {
         this.status = status;
         this.payload = payload;
         this.eventType = eventType;
-        this.aggregateId = aggregateId;
+        this.endToEndId = endToEndId;
         this.id = id;
     }
 
@@ -64,12 +66,12 @@ public class OutboxEntry {
         this.id = id;
     }
 
-    public UUID getAggregateId() {
-        return aggregateId;
+    public String getEndToEndId() {
+        return endToEndId;
     }
 
-    public void setAggregateId(UUID aggregateId) {
-        this.aggregateId = aggregateId;
+    public void setEndToEndId(String endToEndId) {
+        this.endToEndId = endToEndId;
     }
 
     public String getEventType() {

@@ -9,6 +9,7 @@ import org.neo_ledger_transaction.application.service.factory.PaymentParserFacto
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
+import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.neo_ledger_transaction.infrastructure.transport.publisher.TransactionMapperFactory;
@@ -31,13 +32,14 @@ public class IngestionServiceUnitTest {
     private final TransactionMapperFactory transactionEventPublisher = mock(TransactionMapperFactory.class);
     private final XmlValidatorFactory xmlValidatorFactory = mock(XmlValidatorFactory.class);
     private final PaymentParserFactory paymentParserFactory = mock(PaymentParserFactory.class);
+    private final TransactionOutboxPort transactionOutboxPort = mock(TransactionOutboxPort.class);
 
     private final SepaPain008Parser sepaPain008parser = new SepaPain008Parser();
     private final SepaPain001Parser sepaPain001parser = new SepaPain001Parser();
     private final XsdSepaValidator xsdSepaValidator = new XsdSepaValidator();
 
     private final IngestionService ingestionService =
-            new IngestionService(paymentParserFactory, transactionEventPublisher, xmlValidatorFactory);
+            new IngestionService(paymentParserFactory, transactionEventPublisher, xmlValidatorFactory, transactionOutboxPort);
 
     public IngestionServiceUnitTest() throws SAXException {
     }
