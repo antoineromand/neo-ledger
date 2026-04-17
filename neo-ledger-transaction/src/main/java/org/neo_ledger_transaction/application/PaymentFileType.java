@@ -9,7 +9,7 @@ public enum PaymentFileType {
             "urn:iso:std:iso:20022:tech:xsd:pain.008.001.11"
     )),
     SEPA_PAIN_001(List.of(
-            "urn:iso:std:iso:20022:tech:xsd:pain.001.001.12"
+            "urn:iso:std:iso:20022:tech:xsd:pain.001.001.03"
     ));
 
     private final List<String> namespaces;

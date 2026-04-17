@@ -38,7 +38,7 @@ public class XsdSepaValidator implements XmlValidator {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         this.schemas = new HashMap<>();
         this.schemas.put("SEPA_PAIN_008", factory.newSchema(getClass().getResource("/xsd/pain.008.001.11.xsd")));
-        this.schemas.put("SEPA_PAIN_001", factory.newSchema(getClass().getResource("/xsd/pain.001.001.12.xsd")));
+        this.schemas.put("SEPA_PAIN_001", factory.newSchema(getClass().getResource("/xsd/pain.001.001.03.xsd")));
     }
 
     /**

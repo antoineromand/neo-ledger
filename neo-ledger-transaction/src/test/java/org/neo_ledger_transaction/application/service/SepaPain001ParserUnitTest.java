@@ -23,7 +23,16 @@ public class SepaPain001ParserUnitTest {
         assertNotNull(result);
 
         assertEquals(1, result.transactions().size());
-        assertEquals("MSG-TX-REF-2026-001", result.header().msgId());
-        assertEquals(LocalDateTime.parse("2026-03-14T17:15:00.000"), result.header().creationDateTime());
+        assertEquals("MSG-001", result.header().msgId());
+        assertEquals(LocalDateTime.parse("2026-04-17T10:15:30.000"), result.header().creationDateTime());
+        assertEquals(1, result.transactions().size());
+
+        var firstTransaction = result.transactions().getFirst();
+
+        assertEquals("FR7630006000011234567890189", firstTransaction.debtorIdentifier());
+        assertEquals("DE89370400440532013000", firstTransaction.creditorIdentifier());
+        assertEquals("FAC-2026-00452", firstTransaction.remittanceInfo());
+        assertEquals("E2E-001", firstTransaction.endToEndId());
+
     }
 }

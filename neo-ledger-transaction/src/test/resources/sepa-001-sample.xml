@@ -1,78 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.12"
->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
     <CstmrCdtTrfInitn>
         <GrpHdr>
-            <MsgId>MSG-TX-REF-2026-001</MsgId>
-            <CreDtTm>2026-03-14T17:15:00.000Z</CreDtTm>
+            <MsgId>MSG-001</MsgId>
+            <CreDtTm>2026-04-17T10:15:30</CreDtTm>
             <NbOfTxs>1</NbOfTxs>
-            <CtrlSum>1250.50</CtrlSum>
             <InitgPty>
-                <Nm>VOTRE ENTREPRISE SAS</Nm>
-                <Id>
-                    <OrgId>
-                        <Othr>
-                            <Id>12345678900012</Id>
-                            <SchmeNm>
-                                <Cd>COA</Cd>
-                            </SchmeNm>
-                        </Othr>
-                    </OrgId>
-                </Id>
+                <Nm>ABC Consulting SAS</Nm>
             </InitgPty>
         </GrpHdr>
-
         <PmtInf>
-            <PmtInfId>PMT-INF-ID-01</PmtInfId>
+            <PmtInfId>PMT-001</PmtInfId>
             <PmtMtd>TRF</PmtMtd>
             <NbOfTxs>1</NbOfTxs>
-            <CtrlSum>1250.50</CtrlSum>
-            <PmtTpInf>
-                <SvcLvl>
-                    <Cd>SEPA</Cd>
-                </SvcLvl>
-            </PmtTpInf>
-            <ReqdExctnDt>
-                <Dt>2026-03-16</Dt>
-            </ReqdExctnDt>
-
+            <ReqdExctnDt>2026-04-18</ReqdExctnDt>
             <Dbtr>
-                <Nm>VOTRE ENTREPRISE SAS</Nm>
+                <Nm>ABC Consulting SAS</Nm>
             </Dbtr>
             <DbtrAcct>
                 <Id>
-                    <IBAN>FR7630006000011234567890123</IBAN>
+                    <IBAN>FR7630006000011234567890189</IBAN>
                 </Id>
-                <Ccy>EUR</Ccy>
             </DbtrAcct>
             <DbtrAgt>
                 <FinInstnId>
-                    <BICFI>BNPAFRPPXXX</BICFI>
+                    <BIC>AGRIFRPP</BIC>
                 </FinInstnId>
             </DbtrAgt>
             <ChrgBr>SLEV</ChrgBr>
             <CdtTrfTxInf>
                 <PmtId>
-                    <EndToEndId>E2E-REF-998877</EndToEndId>
+                    <InstrId>INSTR-001</InstrId>
+                    <EndToEndId>E2E-001</EndToEndId>
                 </PmtId>
                 <Amt>
-                    <InstdAmt Ccy="EUR">1250.50</InstdAmt>
+                    <InstdAmt Ccy="EUR">1250.00</InstdAmt>
                 </Amt>
                 <CdtrAgt>
                     <FinInstnId>
-                        <BICFI>SOGEFRPPXXX</BICFI>
+                        <BIC>DEUTDEFF</BIC>
                     </FinInstnId>
                 </CdtrAgt>
                 <Cdtr>
-                    <Nm>FOURNISSEUR LOGISTIQUE</Nm>
+                    <Nm>Supplier GmbH</Nm>
                 </Cdtr>
                 <CdtrAcct>
                     <Id>
-                        <IBAN>FR7610278000029876543210987</IBAN>
+                        <IBAN>DE89370400440532013000</IBAN>
                     </Id>
                 </CdtrAcct>
                 <RmtInf>
-                    <Ustrd>PAIEMENT FACTURE NUM 45562 - MARCHANDISE MARS</Ustrd>
+                    <Ustrd>FAC-2026-00452</Ustrd>
                 </RmtInf>
             </CdtTrfTxInf>
         </PmtInf>

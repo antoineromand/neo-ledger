@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 public class IngestionServiceUnitTest {
 
-    private final TransactionMapperFactory transactionEventPublisher = mock(TransactionMapperFactory.class);
+    private final TransactionMapperFactory transactionMapperFactory = mock(TransactionMapperFactory.class);
     private final XmlValidatorFactory xmlValidatorFactory = mock(XmlValidatorFactory.class);
     private final PaymentParserFactory paymentParserFactory = mock(PaymentParserFactory.class);
     private final TransactionOutboxPort transactionOutboxPort = mock(TransactionOutboxPort.class);
@@ -39,7 +39,7 @@ public class IngestionServiceUnitTest {
     private final XsdSepaValidator xsdSepaValidator = new XsdSepaValidator();
 
     private final IngestionService ingestionService =
-            new IngestionService(paymentParserFactory, transactionEventPublisher, xmlValidatorFactory, transactionOutboxPort);
+            new IngestionService(paymentParserFactory, transactionMapperFactory, xmlValidatorFactory, transactionOutboxPort);
 
     public IngestionServiceUnitTest() throws SAXException {
     }
@@ -53,7 +53,7 @@ public class IngestionServiceUnitTest {
 
             ingestionService.executeIngestion(is);
 
-            verify(transactionEventPublisher, atLeastOnce()).toBinary(any());
+            verify(transactionMapperFactory, atLeastOnce()).toBinary(any());
         }
     }
 
@@ -67,7 +67,7 @@ public class IngestionServiceUnitTest {
 
             ingestionService.executeIngestion(is);
 
-            verify(transactionEventPublisher, atLeastOnce()).toBinary(any());
+            verify(transactionMapperFactory, atLeastOnce()).toBinary(any());
 
         }
     }
@@ -84,7 +84,7 @@ public class IngestionServiceUnitTest {
             assertThrows(ParserConfigurationException.class, () -> ingestionService.executeIngestion(targetStream));
 
             verify(mockValidator).validate(any(InputStream.class), eq("SEPA_PAIN_008"));
-            verifyNoInteractions(transactionEventPublisher);
+            verifyNoInteractions(transactionMapperFactory);
         }
 
     }
@@ -109,7 +109,7 @@ public class IngestionServiceUnitTest {
                 .when(mockValidator)
                 .validate(any(InputStream.class), anyString());
         assertThrows(ValidationException.class, () -> ingestionService.executeIngestion(is));
-        verifyNoInteractions(transactionEventPublisher, paymentParserFactory);
+        verifyNoInteractions(transactionMapperFactory, paymentParserFactory);
     }
 
     @Test
@@ -124,7 +124,7 @@ public class IngestionServiceUnitTest {
 
         assertThrows(UnsupportedPaymentFormatException.class, () -> ingestionService.executeIngestion(is));
 
-        verifyNoInteractions(transactionEventPublisher, xmlValidatorFactory, paymentParserFactory);
+        verifyNoInteractions(transactionMapperFactory, xmlValidatorFactory, paymentParserFactory);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class IngestionServiceUnitTest {
         when(is.readAllBytes()).thenThrow(new IOException("Issue while reading"));
 
         assertThrows(InputStreamTechnicalException.class, () -> ingestionService.executeIngestion(is));
-        verifyNoInteractions(transactionEventPublisher, xmlValidatorFactory, paymentParserFactory);
+        verifyNoInteractions(transactionMapperFactory, xmlValidatorFactory, paymentParserFactory);
     }
 
     @Test
@@ -143,6 +143,6 @@ public class IngestionServiceUnitTest {
         String corruptedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Document xmlns=\"urn:iso:";
         InputStream is = new ByteArrayInputStream(corruptedXml.getBytes(StandardCharsets.UTF_8));
         assertThrows(InputStreamTechnicalException.class, () -> ingestionService.executeIngestion(is));
-        verifyNoInteractions(transactionEventPublisher, xmlValidatorFactory, paymentParserFactory);
+        verifyNoInteractions(transactionMapperFactory, xmlValidatorFactory, paymentParserFactory);
     }
 }
