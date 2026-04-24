@@ -23,6 +23,9 @@ public class OutboxEntry {
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
+    @Column(name = "aggregate_type", nullable = false)
+    private String aggregateType;
+
     @JdbcTypeCode(Types.VARBINARY)
     @Column(name = "payload", nullable = false, columnDefinition = "BYTEA")
     private byte[] payload;
@@ -46,7 +49,7 @@ public class OutboxEntry {
     public OutboxEntry() {
     }
 
-    public OutboxEntry(LocalDateTime processedAt, LocalDateTime createdAt, String lastError, int retryCount, String status, byte[] payload, String eventType, String endToEndId, UUID id) {
+    public OutboxEntry(LocalDateTime processedAt, LocalDateTime createdAt, String lastError, int retryCount, String status, byte[] payload, String eventType, String endToEndId, UUID id, String aggregateType) {
         this.processedAt = processedAt;
         this.createdAt = createdAt;
         this.lastError = lastError;
@@ -56,6 +59,7 @@ public class OutboxEntry {
         this.eventType = eventType;
         this.endToEndId = endToEndId;
         this.id = id;
+        this.aggregateType = aggregateType;
     }
 
     public UUID getId() {
@@ -128,5 +132,13 @@ public class OutboxEntry {
 
     public void setProcessedAt(LocalDateTime processedAt) {
         this.processedAt = processedAt;
+    }
+
+    public String getAggregateType() {
+        return aggregateType;
+    }
+
+    public void setAggregateType(String aggregateType) {
+        this.aggregateType = aggregateType;
     }
 }

@@ -95,7 +95,7 @@ public class IngestionServiceUnitTest {
     void should_stop_when_validation_fails() {
         String invalidXml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.12">
+                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
                     <CstmrDrctDbtInitn>
                         <GrpHdr><MsgId>INVALID</MsgId></GrpHdr>
                     </CstmrDrctDbtInitn>

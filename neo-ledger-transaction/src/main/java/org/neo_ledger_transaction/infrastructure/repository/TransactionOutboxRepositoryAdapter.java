@@ -13,9 +13,10 @@ public class TransactionOutboxRepositoryAdapter implements TransactionOutboxPort
     }
 
     @Override
-    public void save(String endToEndId, String eventType, byte[] payload) {
+    public void save(String endToEndId, String aggregateType, String eventType, byte[] payload) {
         OutboxEntry outboxEntry = new OutboxEntry();
         outboxEntry.setEndToEndId(endToEndId);
+        outboxEntry.setAggregateType(aggregateType);
         outboxEntry.setEventType(eventType);
         outboxEntry.setPayload(payload);
         this.transactionOutboxJpaRepository.save(outboxEntry);

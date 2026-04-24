@@ -39,6 +39,8 @@ public class IngestionService implements IngestionUseCasePort {
     private final XmlValidatorFactory xmlValidatorFactory;
     private final TransactionOutboxPort transactionOutboxPort;
 
+    private static final String eventType = "TRANSACTION_INGESTED";
+
     /**
      * Dependency injection constructor.
      *
@@ -100,7 +102,7 @@ public class IngestionService implements IngestionUseCasePort {
         try {
             res.transactions().forEach((transaction) -> {
                 byte[] binary = this.transactionMapperFactory.toBinary(transaction);
-                this.transactionOutboxPort.save(transaction.endToEndId(), paymentType, binary);
+                this.transactionOutboxPort.save(transaction.endToEndId(), paymentType, eventType, binary);
             });
         } catch (Exception e) {
             throw new EventPublishingException(e);
