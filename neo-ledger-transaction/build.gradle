@@ -56,10 +56,19 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.neo_ledger_transaction.NeoLedgeTransactionApplication'
+    mainClass = 'org.neo_ledger_transaction.NeoLedgerTransactionApplication'
 }
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks.processTestResources {
+
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+
+    from("${rootProject.projectDir}/scripts/sql/transaction-api-db.sql") {
+        into("")
+    }
 }

@@ -2,12 +2,14 @@ package org.neo_ledger_transaction;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-public class NeoLedgeTransactionApplication {
+@EnableTransactionManagement
+public class NeoLedgerTransactionApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(NeoLedgeTransactionApplication.class, args);
+        SpringApplication.run(NeoLedgerTransactionApplication.class, args);
     }
 
 

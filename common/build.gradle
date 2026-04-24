@@ -27,7 +27,7 @@ dependencies {
     testFixturesImplementation 'org.testcontainers:kafka'
     testFixturesImplementation 'org.testcontainers:junit-jupiter'
     testFixturesImplementation 'org.springframework.boot:spring-boot-starter-test'
-
+    testFixturesImplementation 'org.testcontainers:postgresql'
 }
 
 protobuf {

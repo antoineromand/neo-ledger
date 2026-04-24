@@ -1,5 +1,6 @@
 package org.neo_ledger_transaction.application.service;
 
+import jakarta.transaction.Transactional;
 import org.neo_ledger_transaction.application.PaymentFileType;
 import org.neo_ledger_transaction.application.exceptions.EventPublishingException;
 import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
@@ -71,6 +72,7 @@ public class IngestionService implements IngestionUseCasePort {
      * @throws InputStreamTechnicalException If there is any error while reading input stream.
      */
     @Override
+    @Transactional(rollbackOn = ParserConfigurationException.class)
     public void executeIngestion(InputStream file) throws ParserConfigurationException {
         try {
             byte[] xmlContent = file.readAllBytes();

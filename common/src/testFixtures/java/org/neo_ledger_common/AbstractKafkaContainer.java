@@ -14,10 +14,6 @@ public abstract class AbstractKafkaContainer {
         Runtime.getRuntime().addShutdownHook(new Thread(KAFKA::stop));
     }
 
-    public static String getBootstrapServers() {
-        return KAFKA.getBootstrapServers();
-    }
-
     @DynamicPropertySource
     static void kafkaProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", KAFKA::getBootstrapServers);

@@ -110,7 +110,7 @@ services:
       - kafka-net
 
   neo-ledger-transaction-db:
-    image: postgres
+    image: postgres:16.2-alpine
     restart: always
     ports:
       - "${NLT_DB_PORT}"
