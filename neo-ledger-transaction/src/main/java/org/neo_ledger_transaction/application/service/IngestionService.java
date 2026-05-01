@@ -2,9 +2,9 @@ package org.neo_ledger_transaction.application.service;
 
 import jakarta.transaction.Transactional;
 import org.neo_ledger_transaction.application.PaymentFileType;
-import org.neo_ledger_transaction.application.exceptions.EventPublishingException;
 import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
+import org.neo_ledger_transaction.application.exceptions.WritingTransactionException;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
@@ -68,7 +68,7 @@ public class IngestionService implements IngestionUseCasePort {
      * </p>
      *
      * @param file The binary stream (InputStream) of the file to process.
-     * @throws EventPublishingException If there is any error while publishing the transaction.
+     * @throws WritingTransactionException If there is any error while writing the transaction.
      * @throws InputStreamTechnicalException If there is any error while reading input stream.
      */
     @Override
@@ -98,7 +98,7 @@ public class IngestionService implements IngestionUseCasePort {
      * Publish a transaction to an event
      *
      * @param res         The parsed transaction from the input stream.
-     * @throws EventPublishingException If there is any error while publishing the transaction.
+     * @throws WritingTransactionException If there is any error while writing the transaction.
      */
     private void writeTransaction(RawPaymentFile<? extends RawTransaction> res, String paymentType) {
         try {
@@ -107,7 +107,7 @@ public class IngestionService implements IngestionUseCasePort {
                 this.transactionOutboxPort.save(transaction.endToEndId(), paymentType, eventType, binary);
             });
         } catch (Exception e) {
-            throw new EventPublishingException(e);
+            throw new WritingTransactionException(e);
         }
     }
 
