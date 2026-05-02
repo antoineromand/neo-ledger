@@ -9,43 +9,63 @@ import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Persistence model for the transaction outbox.
+ * <p>
+ * Each field carries a specific relay contract:
+ * identity, business correlation, routing, payload, and lifecycle state.
+ * </p>
+ */
 @Entity
 @Table(name = "transaction_outbox")
 public class OutboxEntry {
 
+    /**
+     * Unique technical identifier of the outbox row and stable message key.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /** Business correlation key inherited from the payment file. */
     @Column(name = "end_to_end_id", unique = true)
     private String endToEndId;
 
+    /** Domain event name produced by ingestion, for example `TRANSACTION_INGESTED`. */
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
+    /** Broker routing key or topic key used to dispatch the message. */
     @Column(name = "routing_key", nullable = false)
     private String routingKey;
 
+    /** Serialized event payload to publish to the broker. */
     @JdbcTypeCode(Types.VARBINARY)
     @Column(name = "payload", nullable = false, columnDefinition = "BYTEA")
     private byte[] payload;
 
+    /** Lifecycle state of the outbox row: PENDING, PROCESSING, PROCESSED, or DEAD_LETTER. */
     @Column(name = "status", nullable = false, length = 20)
     private String status = "PENDING";
 
+    /** Number of publish attempts already performed for this row. */
     @Column(name = "retry_count", nullable = false)
     private int retryCount = 0;
 
+    /** Earliest time at which the row may be claimed again after a failure. */
     @Column(name = "next_attempt_at")
     private LocalDateTime nextAttemptAt;
 
+    /** Last publish or relay error recorded for troubleshooting and retries. */
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
 
+    /** Timestamp when the outbox row was created. */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /** Timestamp when the row was successfully published. */
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
