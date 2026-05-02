@@ -80,17 +80,17 @@ Tu evites les regressions futures sur le point le plus sensible.
 
 **Pourquoi**
 
-Aujourd'hui, `aggregateType` contient `SEPA_PAIN_001` ou `SEPA_PAIN_008`, ce qui correspond a un format technique et non a un concept metier.
+Aujourd'hui, le champ qui porte le type de flux sert a la fois a la semantique de routage et a la distinction technique entre `SEPA_PAIN_001` et `SEPA_PAIN_008`.
 
 **Objectif**
 
-Donner une signification metier stable aux metadonnees de l'outbox.
+Donner une signification claire a cette metadata et arreter d'utiliser un concept d'agregat pour un besoin de routage.
 
 **Ce qu'il faut faire**
 
-- decider quel est le vrai concept emetteur de l'evenement
-- choisir une valeur metier claire pour `aggregateType`
-- arreter d'utiliser le type de fichier comme substitut de type d'agregat
+- garder un nom qui correspond au role reel du champ
+- utiliser ce champ comme cle de routage ou type de message, pas comme type d'agregat
+- documenter explicitement que `SEPA_PAIN_001` et `SEPA_PAIN_008` sont des valeurs de routage
 
 **Exemples de direction**
 
@@ -151,12 +151,17 @@ Rendre le contrat d'outbox clair pour toi et pour les autres.
 **Ce qu'il faut faire**
 
 - ecrire un court document ou JavaDoc indiquant le role de :
-- `aggregateType`
-- `eventType`
+- `id`
 - `endToEndId`
+- `routingKey`
+- `eventType`
 - `payload`
 - `status`
 - `retryCount`
+- `nextAttemptAt`
+- `lastError`
+- `createdAt`
+- `processedAt`
 
 **Definition de fini**
 
@@ -193,6 +198,12 @@ Transformer les metadonnees du fichier en regles effectivement controlees.
 **Gain**
 
 Tu fais passer le modele de "descriptif" a "protecteur d'invariants".
+
+**Etat actuel**
+
+- resolu dans `IngestionService`
+- exception metier dediee : `InconsistentPaymentFileException`
+- test ajoute dans `IngestionServiceUnitTest`
 
 ### Tache 7. Identifier les autres invariants metier minima a proteger
 
@@ -453,11 +464,10 @@ Si tu veux un plan ultra pragmatique sur peu de jours, voici la meilleure sequen
 
 1. rendre l'ingestion atomique
 2. ajouter le test de rollback global
-3. verifier `expectedNbTxs`
-4. redefinir la semantique de `aggregateType`
-5. revoir l'unicite de `endToEndId`
-6. clarifier le support des versions `pain.001`
-7. deplacer le parsing XML hors du domaine
+3. redefinir la semantique du champ de routage dans l'outbox
+4. revoir l'unicite de `endToEndId`
+5. clarifier le support des versions `pain.001`
+6. deplacer le parsing XML hors du domaine
 
 ## Backlog Moyen Terme
 
@@ -482,7 +492,7 @@ Tu pourras considerer le module nettement amelioré quand :
 
 - un fichier n'est plus jamais ingere partiellement
 - les invariants de fichier sont verifies explicitement
-- l'outbox porte une semantique metier claire
+- l'outbox porte une semantique claire et documentee
 - le domaine ne depend plus directement du XML
 - le support des formats est sans ambiguite
 

@@ -121,4 +121,23 @@ class TransactionOutboxRelayJpaAdapterIntTest extends AbstractPostgresContainer 
         assertEquals("boom", reloaded.getLastError());
         assertNull(reloaded.getNextAttemptAt());
     }
+
+    @Test
+    void should_allow_multiple_outbox_rows_with_same_end_to_end_id() {
+        OutboxEntry first = new OutboxEntry();
+        first.setEndToEndId("DUPLICATE-E2E");
+        first.setRoutingKey("SEPA_PAIN_001");
+        first.setEventType("TRANSACTION_INGESTED");
+        first.setPayload(new byte[]{1});
+
+        OutboxEntry second = new OutboxEntry();
+        second.setEndToEndId("DUPLICATE-E2E");
+        second.setRoutingKey("SEPA_PAIN_008");
+        second.setEventType("TRANSACTION_INGESTED");
+        second.setPayload(new byte[]{2});
+
+        transactionOutboxJpaRepository.saveAllAndFlush(List.of(first, second));
+
+        assertEquals(2, transactionOutboxJpaRepository.count());
+    }
 }

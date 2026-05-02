@@ -28,7 +28,7 @@ public class OutboxEntry {
     private UUID id;
 
     /** Business correlation key inherited from the payment file. */
-    @Column(name = "end_to_end_id", unique = true)
+    @Column(name = "end_to_end_id")
     private String endToEndId;
 
     /** Domain event name produced by ingestion, for example `TRANSACTION_INGESTED`. */
