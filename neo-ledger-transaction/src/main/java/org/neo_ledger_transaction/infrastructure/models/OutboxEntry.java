@@ -23,7 +23,7 @@ public class OutboxEntry {
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
-    @Column(name = "routingKey", nullable = false)
+    @Column(name = "routing_key", nullable = false)
     private String routingKey;
 
     @JdbcTypeCode(Types.VARBINARY)
@@ -35,6 +35,9 @@ public class OutboxEntry {
 
     @Column(name = "retry_count", nullable = false)
     private int retryCount = 0;
+
+    @Column(name = "next_attempt_at")
+    private LocalDateTime nextAttemptAt;
 
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
@@ -49,11 +52,12 @@ public class OutboxEntry {
     public OutboxEntry() {
     }
 
-    public OutboxEntry(LocalDateTime processedAt, LocalDateTime createdAt, String lastError, int retryCount, String status, byte[] payload, String eventType, String endToEndId, UUID id, String routingKey) {
+    public OutboxEntry(LocalDateTime processedAt, LocalDateTime createdAt, String lastError, int retryCount, LocalDateTime nextAttemptAt, String status, byte[] payload, String eventType, String endToEndId, UUID id, String routingKey) {
         this.processedAt = processedAt;
         this.createdAt = createdAt;
         this.lastError = lastError;
         this.retryCount = retryCount;
+        this.nextAttemptAt = nextAttemptAt;
         this.status = status;
         this.payload = payload;
         this.eventType = eventType;
@@ -108,6 +112,14 @@ public class OutboxEntry {
 
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
+    }
+
+    public LocalDateTime getNextAttemptAt() {
+        return nextAttemptAt;
+    }
+
+    public void setNextAttemptAt(LocalDateTime nextAttemptAt) {
+        this.nextAttemptAt = nextAttemptAt;
     }
 
     public String getLastError() {
