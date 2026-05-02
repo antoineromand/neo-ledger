@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,7 +79,7 @@ class TransactionOutboxRelayJpaAdapterIntTest extends AbstractPostgresContainer 
         OutboxEntry reloaded = transactionOutboxJpaRepository.findById(saved.getId()).orElseThrow();
         assertEquals("PENDING", reloaded.getStatus());
         assertEquals(2, reloaded.getRetryCount());
-        assertEquals(nextAttempt, reloaded.getNextAttemptAt());
+        assertEquals(nextAttempt.truncatedTo(ChronoUnit.MICROS), reloaded.getNextAttemptAt().truncatedTo(ChronoUnit.MICROS));
         assertEquals("boom", reloaded.getLastError());
     }
 
@@ -97,7 +98,7 @@ class TransactionOutboxRelayJpaAdapterIntTest extends AbstractPostgresContainer 
 
         OutboxEntry reloaded = transactionOutboxJpaRepository.findById(saved.getId()).orElseThrow();
         assertEquals("PROCESSED", reloaded.getStatus());
-        assertEquals(processedAt, reloaded.getProcessedAt());
+        assertEquals(processedAt.truncatedTo(ChronoUnit.MICROS), reloaded.getProcessedAt().truncatedTo(ChronoUnit.MICROS));
         assertNull(reloaded.getNextAttemptAt());
         assertNull(reloaded.getLastError());
     }
