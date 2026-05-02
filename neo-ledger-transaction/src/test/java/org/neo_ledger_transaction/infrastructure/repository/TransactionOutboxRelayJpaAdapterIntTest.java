@@ -73,7 +73,7 @@ class TransactionOutboxRelayJpaAdapterIntTest extends AbstractPostgresContainer 
 
         OutboxEntry saved = transactionOutboxJpaRepository.saveAndFlush(entry);
 
-        LocalDateTime nextAttempt = LocalDateTime.now().plusMinutes(3);
+        LocalDateTime nextAttempt = LocalDateTime.of(2026, 5, 2, 10, 3);
         relayJpaAdapter.scheduleRetry(saved.getId(), 2, nextAttempt, "boom");
 
         OutboxEntry reloaded = transactionOutboxJpaRepository.findById(saved.getId()).orElseThrow();
@@ -93,7 +93,7 @@ class TransactionOutboxRelayJpaAdapterIntTest extends AbstractPostgresContainer 
 
         OutboxEntry saved = transactionOutboxJpaRepository.saveAndFlush(entry);
 
-        LocalDateTime processedAt = LocalDateTime.now();
+        LocalDateTime processedAt = LocalDateTime.of(2026, 5, 2, 10, 0);
         relayJpaAdapter.markAsProcessed(saved.getId(), processedAt);
 
         OutboxEntry reloaded = transactionOutboxJpaRepository.findById(saved.getId()).orElseThrow();
