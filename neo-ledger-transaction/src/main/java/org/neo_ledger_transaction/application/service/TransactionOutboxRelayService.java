@@ -16,6 +16,14 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+/**
+ * Application service that orchestrates the outbox relay.
+ * <p>
+ * It claims due messages, delegates publication, and updates the outbox
+ * state through output ports. The class intentionally contains no JPA or
+ * Kafka details.
+ * </p>
+ */
 public class TransactionOutboxRelayService implements TransactionOutboxRelayUseCasePort {
     private static final int BATCH_SIZE = 20;
     private static final int MAX_RETRY_COUNT = 5;

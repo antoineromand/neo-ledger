@@ -13,6 +13,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * JPA adapter for the outbox relay ports.
+ * <p>
+ * It claims due entries and persists relay state transitions in short
+ * transactions.
+ * </p>
+ */
 @Service
 public class TransactionOutboxRelayJpaAdapter implements TransactionOutboxQueryPort, TransactionOutboxStatePort {
     private static final String PENDING = "PENDING";
@@ -26,6 +33,10 @@ public class TransactionOutboxRelayJpaAdapter implements TransactionOutboxQueryP
         this.transactionOutboxJpaRepository = transactionOutboxJpaRepository;
     }
 
+    /**
+     * Claims the next batch of due outbox rows and converts them to application
+     * messages.
+     */
     @Override
     @Transactional
     public List<TransactionOutboxMessage> claimDueMessages(LocalDateTime now, int batchSize) {
@@ -45,6 +56,9 @@ public class TransactionOutboxRelayJpaAdapter implements TransactionOutboxQueryP
 
     @Override
     @Transactional
+    /**
+     * Marks the given entry as successfully processed.
+     */
     public void markAsProcessed(UUID id, LocalDateTime processedAt) {
         OutboxEntry current = this.transactionOutboxJpaRepository.findById(id)
                 .orElseThrow(() -> new TransactionOutboxEntryNotFoundException(id));
@@ -58,6 +72,9 @@ public class TransactionOutboxRelayJpaAdapter implements TransactionOutboxQueryP
 
     @Override
     @Transactional
+    /**
+     * Re-schedules the given entry for another attempt.
+     */
     public void scheduleRetry(UUID id, int retryCount, LocalDateTime nextAttemptAt, String lastError) {
         OutboxEntry current = this.transactionOutboxJpaRepository.findById(id)
                 .orElseThrow(() -> new TransactionOutboxEntryNotFoundException(id));
@@ -72,6 +89,9 @@ public class TransactionOutboxRelayJpaAdapter implements TransactionOutboxQueryP
 
     @Override
     @Transactional
+    /**
+     * Marks the given entry as terminally failed.
+     */
     public void markAsDeadLetter(UUID id, int retryCount, String lastError) {
         OutboxEntry current = this.transactionOutboxJpaRepository.findById(id)
                 .orElseThrow(() -> new TransactionOutboxEntryNotFoundException(id));
