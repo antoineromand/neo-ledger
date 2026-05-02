@@ -4,11 +4,15 @@ import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
+import org.neo_ledger_transaction.application.exceptions.InconsistentPaymentFileException;
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
+import org.neo_ledger_transaction.domain.model.FileHeader;
+import org.neo_ledger_transaction.domain.model.RawPaymentFile;
+import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
 import org.neo_ledger_transaction.domain.service.PaymentParser;
@@ -21,7 +25,11 @@ import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -144,5 +152,43 @@ public class IngestionServiceUnitTest {
         InputStream is = new ByteArrayInputStream(corruptedXml.getBytes(StandardCharsets.UTF_8));
         assertThrows(InputStreamTechnicalException.class, () -> ingestionService.executeIngestion(is));
         verifyNoInteractions(transactionMapperFactory, xmlValidatorFactory, paymentParserFactory);
+    }
+
+    @Test
+    @DisplayName("Should stop process when declared transaction count does not match parsed transactions")
+    void should_stop_when_expected_transaction_count_does_not_match_parsed_transactions() throws Exception {
+        try (InputStream is = getClass().getResourceAsStream("/sepa-008-sample.xml")) {
+            assertNotNull(is, "Test file sepa-008-sample.xml not found");
+
+            XmlValidator mockValidator = mock(XmlValidator.class);
+            @SuppressWarnings("unchecked")
+            PaymentParser<RawPaymentFile<RawSepaTransaction>> mockParser = mock(PaymentParser.class);
+
+            when(this.xmlValidatorFactory.getValidator("SEPA_PAIN_008")).thenReturn(mockValidator);
+            when(this.paymentParserFactory.getParser("SEPA_PAIN_008")).thenReturn((PaymentParser) mockParser);
+            doNothing().when(mockValidator).validate(any(InputStream.class), eq("SEPA_PAIN_008"));
+
+            when(mockParser.parse(any(InputStream.class))).thenReturn(new RawPaymentFile<>(
+                    new FileHeader("MSG-1", 2, LocalDateTime.parse("2026-05-02T10:00:00")),
+                    List.of(new RawSepaTransaction(
+                            "E2E-1",
+                            "FR7612345678901234567890185",
+                            "FR7612345678901234567890186",
+                            BigDecimal.ONE,
+                            "EUR",
+                            LocalDate.parse("2026-05-03"),
+                            false,
+                            "info",
+                            "MANDATE-1",
+                            "SCHEME-1"
+                    ))
+            ));
+
+            assertThrows(InconsistentPaymentFileException.class, () -> ingestionService.executeIngestion(is));
+
+            verify(mockValidator).validate(any(InputStream.class), eq("SEPA_PAIN_008"));
+            verify(mockParser).parse(any(InputStream.class));
+            verifyNoInteractions(transactionMapperFactory, transactionOutboxPort);
+        }
     }
 }
