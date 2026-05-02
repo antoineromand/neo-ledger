@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * SEPA Credit Transfer file parser for {@code pain.001} format.
  * <p>
- * This implementation handles version 001.001.12 and follows the StAX
+ * This implementation handles version 001.001.03 (used by banks) and follows the StAX
  * streaming model to maintain a low memory footprint during processing.
  * </p>
  */
@@ -105,7 +105,7 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
             int event = r.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 switch (r.getLocalName()) {
-                    case "ReqdExctnDt" -> requestedDate = parseDateChoice(r, "ReqdExctnDt");
+                    case "ReqdExctnDt" -> requestedDate = LocalDate.parse(r.getElementText());
                     case "DbtrAcct" -> debtorIban = parseAccountIban(r, "DbtrAcct");
                     case "PmtTpInf" -> groupIsInstant = parsePaymentTypeInformation(r);
                     case "CdtTrfTxInf" -> transactions.add(parseTransaction(
@@ -213,31 +213,6 @@ public class SepaPain001Parser implements PaymentParser<RawPaymentFile<RawSepaTr
             }
         }
         return remittanceInfo;
-    }
-
-    /**
-     * Handles the Date or DateTime choice for the {@code ReqdExctnDt} field.
-     *
-     * @param r      XML reader.
-     * @param endTag The expected closing tag.
-     * @return The extracted LocalDate.
-     * @throws XMLStreamException In case of a parsing error.
-     */
-    private LocalDate parseDateChoice(XMLStreamReader r, String endTag) throws XMLStreamException {
-        LocalDate date = null;
-        while (r.hasNext()) {
-            int event = r.next();
-            if (event == XMLStreamConstants.START_ELEMENT) {
-                if ("Dt".equals(r.getLocalName())) {
-                    date = LocalDate.parse(r.getElementText());
-                } else if ("DtTm".equals(r.getLocalName())) {
-                    date = LocalDateTime.parse(r.getElementText(), DateTimeFormatter.ISO_DATE_TIME).toLocalDate();
-                }
-            } else if (event == XMLStreamConstants.END_ELEMENT && endTag.equals(r.getLocalName())) {
-                break;
-            }
-        }
-        return date;
     }
 
     @Override
