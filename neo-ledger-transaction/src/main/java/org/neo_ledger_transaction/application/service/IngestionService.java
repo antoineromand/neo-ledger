@@ -3,6 +3,7 @@ package org.neo_ledger_transaction.application.service;
 import jakarta.transaction.Transactional;
 import org.neo_ledger_transaction.application.PaymentFileType;
 import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
+import org.neo_ledger_transaction.application.exceptions.InconsistentPaymentFileException;
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.exceptions.WritingTransactionException;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
@@ -87,11 +88,18 @@ public class IngestionService implements IngestionUseCasePort {
                     (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentFactory.getParser(paymentType);
             RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
 
+            this.validateTransactionCount(res);
             this.writeTransaction(res, paymentType);
         } catch (IOException | XMLStreamException e) {
             throw new InputStreamTechnicalException(e);
         }
 
+    }
+
+    private void validateTransactionCount(RawPaymentFile<? extends RawTransaction> res) {
+        if (res.header().expectedNbTxs() != res.transactions().size()) {
+            throw new InconsistentPaymentFileException(res.header().expectedNbTxs(), res.transactions().size());
+        }
     }
 
     /**
