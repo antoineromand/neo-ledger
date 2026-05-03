@@ -1,10 +1,10 @@
 package org.neo_ledger_transaction.application.service.sepa;
 
 import org.neo_ledger_transaction.application.PaymentFileType;
+import org.neo_ledger_transaction.application.port.out.PaymentParser;
 import org.neo_ledger_transaction.domain.model.FileHeader;
 import org.neo_ledger_transaction.domain.model.RawPaymentFile;
 import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
-import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLInputFactory;

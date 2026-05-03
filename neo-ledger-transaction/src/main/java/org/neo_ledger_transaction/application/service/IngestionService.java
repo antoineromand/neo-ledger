@@ -14,7 +14,7 @@ import org.neo_ledger_transaction.domain.model.RawTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionMapperFactoryPort;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
-import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.neo_ledger_transaction.application.port.out.PaymentParser;
 import org.springframework.stereotype.Service;
 
 import javax.xml.parsers.ParserConfigurationException;

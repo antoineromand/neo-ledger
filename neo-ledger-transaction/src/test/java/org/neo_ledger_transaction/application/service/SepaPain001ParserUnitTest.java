@@ -1,6 +1,7 @@
 package org.neo_ledger_transaction.application.service;
 
 import org.junit.jupiter.api.Test;
+import org.neo_ledger_transaction.application.port.out.PaymentParser;
 import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
 
 import javax.xml.stream.XMLStreamException;

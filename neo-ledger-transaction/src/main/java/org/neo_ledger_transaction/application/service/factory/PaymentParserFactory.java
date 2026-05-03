@@ -1,6 +1,6 @@
 package org.neo_ledger_transaction.application.service.factory;
 
-import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.neo_ledger_transaction.application.port.out.PaymentParser;
 import org.springframework.stereotype.Component;
 
 import javax.xml.parsers.ParserConfigurationException;

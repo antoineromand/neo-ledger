@@ -15,7 +15,7 @@ import org.neo_ledger_transaction.domain.model.RawPaymentFile;
 import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
-import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.neo_ledger_transaction.application.port.out.PaymentParser;
 import org.neo_ledger_transaction.infrastructure.transport.publisher.TransactionMapperFactory;
 import org.neo_ledger_transaction.infrastructure.validator.XsdSepaValidator;
 import org.xml.sax.SAXException;
