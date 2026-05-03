@@ -8,8 +8,8 @@ import org.neo_ledger_transaction.application.exceptions.InconsistentPaymentFile
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
-import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
-import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
+import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain001Parser;
+import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain008Parser;
 import org.neo_ledger_transaction.domain.model.FileHeader;
 import org.neo_ledger_transaction.domain.model.RawPaymentFile;
 import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
