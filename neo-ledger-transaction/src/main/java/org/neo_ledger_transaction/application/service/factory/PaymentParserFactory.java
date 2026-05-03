@@ -1,6 +1,6 @@
 package org.neo_ledger_transaction.application.service.factory;
 
-import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.springframework.stereotype.Component;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,13 +16,13 @@ import java.util.List;
 @Component
 public class PaymentParserFactory {
 
-    private final List<PaymentParser<?>> paymentParsers;
+    private final List<PaymentFileParser<?>> paymentParsers;
 
     /**
-     * Constructor injecting all available {@link PaymentParser} implementations.
+     * Constructor injecting all available {@link PaymentFileParser} implementations.
      * * @param paymentParsers The list of parser beans managed by the Spring context.
      */
-    public PaymentParserFactory(List<PaymentParser<?>> paymentParsers) {
+    public PaymentParserFactory(List<PaymentFileParser<?>> paymentParsers) {
         this.paymentParsers = paymentParsers;
     }
 
@@ -30,10 +30,10 @@ public class PaymentParserFactory {
      * Retrieves a parser that supports the specified namespace or format.
      *
      * @param namespace The format identifier (e.g., an XML namespace or payment type).
-     * @return A {@link PaymentParser} implementation capable of handling the format.
+     * @return A {@link PaymentFileParser} implementation capable of handling the format.
      * @throws ParserConfigurationException If no supporting parser is configured for the given namespace.
      */
-    public PaymentParser<?> getParser(String namespace) throws ParserConfigurationException {
+    public PaymentFileParser<?> getParser(String namespace) throws ParserConfigurationException {
         return paymentParsers
                 .stream()
                 .filter(p -> p.supports(namespace))

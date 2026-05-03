@@ -8,14 +8,14 @@ import org.neo_ledger_transaction.application.exceptions.InconsistentPaymentFile
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
-import org.neo_ledger_transaction.application.service.sepa.SepaPain001Parser;
-import org.neo_ledger_transaction.application.service.sepa.SepaPain008Parser;
-import org.neo_ledger_transaction.domain.model.FileHeader;
-import org.neo_ledger_transaction.domain.model.RawPaymentFile;
-import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
+import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
+import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain001Parser;
+import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain008Parser;
+import org.neo_ledger_transaction.domain.model.ParsedFileHeader;
+import org.neo_ledger_transaction.domain.model.ParsedPaymentFile;
+import org.neo_ledger_transaction.domain.model.ParsedSepaTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
-import org.neo_ledger_transaction.domain.service.PaymentParser;
 import org.neo_ledger_transaction.infrastructure.transport.publisher.TransactionMapperFactory;
 import org.neo_ledger_transaction.infrastructure.validator.XsdSepaValidator;
 import org.xml.sax.SAXException;
@@ -57,7 +57,7 @@ public class IngestionServiceUnitTest {
         try (InputStream is = getClass().getResourceAsStream("/sepa-008-sample.xml")) {
             assertNotNull(is);
             when(xmlValidatorFactory.getValidator("SEPA_PAIN_008")).thenReturn(xsdSepaValidator);
-            when(paymentParserFactory.getParser("SEPA_PAIN_008")).thenReturn((PaymentParser) sepaPain008parser);
+            when(paymentParserFactory.getParser("SEPA_PAIN_008")).thenReturn((PaymentFileParser) sepaPain008parser);
 
             ingestionService.executeIngestion(is);
 
@@ -71,7 +71,7 @@ public class IngestionServiceUnitTest {
         try (InputStream is = getClass().getResourceAsStream("/sepa-001-sample.xml")) {
             assertNotNull(is);
             when(xmlValidatorFactory.getValidator("SEPA_PAIN_001")).thenReturn(xsdSepaValidator);
-            when(paymentParserFactory.getParser("SEPA_PAIN_001")).thenReturn((PaymentParser) sepaPain001parser);
+            when(paymentParserFactory.getParser("SEPA_PAIN_001")).thenReturn((PaymentFileParser) sepaPain001parser);
 
             ingestionService.executeIngestion(is);
 
@@ -162,15 +162,15 @@ public class IngestionServiceUnitTest {
 
             XmlValidator mockValidator = mock(XmlValidator.class);
             @SuppressWarnings("unchecked")
-            PaymentParser<RawPaymentFile<RawSepaTransaction>> mockParser = mock(PaymentParser.class);
+            PaymentFileParser<ParsedPaymentFile<ParsedSepaTransaction>> mockParser = mock(PaymentFileParser.class);
 
             when(this.xmlValidatorFactory.getValidator("SEPA_PAIN_008")).thenReturn(mockValidator);
-            when(this.paymentParserFactory.getParser("SEPA_PAIN_008")).thenReturn((PaymentParser) mockParser);
+            when(this.paymentParserFactory.getParser("SEPA_PAIN_008")).thenReturn((PaymentFileParser) mockParser);
             doNothing().when(mockValidator).validate(any(InputStream.class), eq("SEPA_PAIN_008"));
 
-            when(mockParser.parse(any(InputStream.class))).thenReturn(new RawPaymentFile<>(
-                    new FileHeader("MSG-1", 2, LocalDateTime.parse("2026-05-02T10:00:00")),
-                    List.of(new RawSepaTransaction(
+            when(mockParser.parse(any(InputStream.class))).thenReturn(new ParsedPaymentFile<>(
+                    new ParsedFileHeader("MSG-1", 2, LocalDateTime.parse("2026-05-02T10:00:00")),
+                    List.of(new ParsedSepaTransaction(
                             "E2E-1",
                             "FR7612345678901234567890185",
                             "FR7612345678901234567890186",

@@ -2,7 +2,7 @@ package org.neo_ledger_transaction.domain.model;
 
 import java.math.BigDecimal;
 
-public interface RawTransaction {
+public interface ParsedTransaction {
     String endToEndId();
     BigDecimal amount();
     String currency();

@@ -9,12 +9,12 @@ import org.neo_ledger_transaction.application.exceptions.WritingTransactionExcep
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
-import org.neo_ledger_transaction.domain.model.RawPaymentFile;
-import org.neo_ledger_transaction.domain.model.RawTransaction;
+import org.neo_ledger_transaction.domain.model.ParsedPaymentFile;
+import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionMapperFactoryPort;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
-import org.neo_ledger_transaction.domain.service.PaymentParser;
+import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.springframework.stereotype.Service;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -84,9 +84,9 @@ public class IngestionService implements IngestionUseCasePort {
 
             xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
 
-            PaymentParser<RawPaymentFile<? extends RawTransaction>> parser =
-                    (PaymentParser<RawPaymentFile<? extends RawTransaction>>) this.paymentFactory.getParser(paymentType);
-            RawPaymentFile<? extends RawTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
+            PaymentFileParser<ParsedPaymentFile<? extends ParsedTransaction>> parser =
+                    (PaymentFileParser<ParsedPaymentFile<? extends ParsedTransaction>>) this.paymentFactory.getParser(paymentType);
+            ParsedPaymentFile<? extends ParsedTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
 
             this.validateTransactionCount(res);
             this.writeTransaction(res, paymentType);
@@ -96,7 +96,7 @@ public class IngestionService implements IngestionUseCasePort {
 
     }
 
-    private void validateTransactionCount(RawPaymentFile<? extends RawTransaction> res) {
+    private void validateTransactionCount(ParsedPaymentFile<? extends ParsedTransaction> res) {
         if (res.header().expectedNbTxs() != res.transactions().size()) {
             throw new InconsistentPaymentFileException(res.header().expectedNbTxs(), res.transactions().size());
         }
@@ -108,7 +108,7 @@ public class IngestionService implements IngestionUseCasePort {
      * @param res         The parsed transaction from the input stream.
      * @throws WritingTransactionException If there is any error while writing the transaction.
      */
-    private void writeTransaction(RawPaymentFile<? extends RawTransaction> res, String paymentType) {
+    private void writeTransaction(ParsedPaymentFile<? extends ParsedTransaction> res, String paymentType) {
         try {
             res.transactions().forEach((transaction) -> {
                 byte[] binary = this.transactionMapperFactory.toBinary(transaction);
