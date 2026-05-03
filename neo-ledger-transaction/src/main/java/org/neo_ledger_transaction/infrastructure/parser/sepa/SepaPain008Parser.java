@@ -1,10 +1,10 @@
 package org.neo_ledger_transaction.infrastructure.parser.sepa;
 
 import org.neo_ledger_transaction.application.PaymentFileType;
-import org.neo_ledger_transaction.application.port.out.PaymentParser;
-import org.neo_ledger_transaction.domain.model.FileHeader;
-import org.neo_ledger_transaction.domain.model.RawPaymentFile;
-import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
+import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
+import org.neo_ledger_transaction.domain.model.ParsedFileHeader;
+import org.neo_ledger_transaction.domain.model.ParsedPaymentFile;
+import org.neo_ledger_transaction.domain.model.ParsedSepaTransaction;
 import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLInputFactory;
@@ -39,33 +39,33 @@ import java.util.List;
  * </p>
  *
  * <p>
- * The result is wrapped in a {@link RawPaymentFile} containing:
+ * The result is wrapped in a {@link ParsedPaymentFile} containing:
  * <ul>
- * <li>A {@link FileHeader}</li>
- * <li>A list of {@link RawSepaTransaction} objects</li>
+ * <li>A {@link ParsedFileHeader}</li>
+ * <li>A list of {@link ParsedSepaTransaction} objects</li>
  * </ul>
  * </p>
  */
 @Component
-public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTransaction>> {
+public class SepaPain008Parser implements PaymentFileParser<ParsedPaymentFile<ParsedSepaTransaction>> {
 
     /**
      * Parses an XML stream corresponding to a SEPA {@code pain.008} file.
      *
      * @param stream The input XML stream.
-     * @return A raw representation of the file, including header and transactions.
+     * @return A parsed representation of the file, including header and transactions.
      * @throws XMLStreamException If the XML stream is malformed.
      */
     @Override
-    public RawPaymentFile<RawSepaTransaction> parse(InputStream stream) throws XMLStreamException {
+    public ParsedPaymentFile<ParsedSepaTransaction> parse(InputStream stream) throws XMLStreamException {
         XMLInputFactory xif = XMLInputFactory.newFactory();
         xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         xif.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
 
         XMLStreamReader r = xif.createXMLStreamReader(stream, StandardCharsets.UTF_8.name());
 
-        FileHeader header = null;
-        List<RawSepaTransaction> allTransactions = new ArrayList<>();
+        ParsedFileHeader header = null;
+        List<ParsedSepaTransaction> allTransactions = new ArrayList<>();
 
         while (r.hasNext()) {
             int event = r.next();
@@ -80,7 +80,7 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
             }
         }
 
-        return new RawPaymentFile<>(header, allTransactions);
+        return new ParsedPaymentFile<>(header, allTransactions);
     }
 
     /**
@@ -99,7 +99,7 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
      * @return The SEPA file header.
      * @throws XMLStreamException In case of a parsing error.
      */
-    private FileHeader parseGrpHdr(XMLStreamReader r) throws XMLStreamException {
+    private ParsedFileHeader parseGrpHdr(XMLStreamReader r) throws XMLStreamException {
         String msgId = null;
         int count = 0;
         LocalDateTime dt = null;
@@ -120,7 +120,7 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
             }
         }
 
-        return new FileHeader(msgId, count, dt);
+        return new ParsedFileHeader(msgId, count, dt);
     }
 
     /**
@@ -135,8 +135,8 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
      * @return A list of transactions contained in this block.
      * @throws XMLStreamException In case of a parsing error.
      */
-    private List<RawSepaTransaction> parsePmtInf(XMLStreamReader r) throws XMLStreamException {
-        List<RawSepaTransaction> transactions = new ArrayList<>();
+    private List<ParsedSepaTransaction> parsePmtInf(XMLStreamReader r) throws XMLStreamException {
+        List<ParsedSepaTransaction> transactions = new ArrayList<>();
 
         String creditorIban = null;
         String creditorSchemeId = null;
@@ -177,10 +177,10 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
      * @param isInstant        Instant payment indicator.
      * @param groupDate        Collection date for the group.
      * @param creditorSchemeId SEPA Creditor Identifier (ICS).
-     * @return A raw SEPA transaction object.
+     * @return A parsed SEPA transaction object.
      * @throws XMLStreamException In case of a parsing error.
      */
-    private RawSepaTransaction parseTransaction(
+    private ParsedSepaTransaction parseTransaction(
             XMLStreamReader r,
             String creditorIban,
             boolean isInstant,
@@ -218,7 +218,7 @@ public class SepaPain008Parser implements PaymentParser<RawPaymentFile<RawSepaTr
             }
         }
 
-        return new RawSepaTransaction(
+        return new ParsedSepaTransaction(
                 e2eId,
                 debtorIban,
                 creditorIban,

@@ -6,12 +6,12 @@ import java.io.InputStream;
 /**
  * Contract for payment file parsers owned by the application layer.
  * <p>
- * Implementations parse XML input streams into raw payment file objects.
+ * Implementations parse XML input streams into parsed payment file objects.
  * </p>
  *
  * @param <T> Parsed payment file type.
  */
-public interface PaymentParser<T> {
+public interface PaymentFileParser<T> {
 
     /**
      * Parses the input stream into a structured payment file representation.

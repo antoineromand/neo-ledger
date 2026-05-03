@@ -3,7 +3,7 @@ package org.neo_ledger_transaction.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record RawSepaTransaction(
+public record ParsedSepaTransaction(
         String endToEndId,
         String debtorIban,
         String creditorIban,
@@ -14,7 +14,7 @@ public record RawSepaTransaction(
         String remittanceInfo,
         String mandateId,
         String creditorSchemeId
-) implements RawTransaction {
+) implements ParsedTransaction {
 
     @Override public String debtorIdentifier() { return debtorIban; }
     @Override public String creditorIdentifier() { return creditorIban; }

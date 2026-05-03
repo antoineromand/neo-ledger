@@ -1,6 +1,6 @@
 package org.neo_ledger_transaction.domain.port.out;
 
-import org.neo_ledger_transaction.domain.model.RawTransaction;
+import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 
 /**
  * Output port for publishing transaction-related events.
@@ -14,7 +14,7 @@ public interface TransactionMapperFactoryPort {
      * (e.g., SEPA, SWIFT, or others).
      * </p>
      *
-     * @param transaction The raw transaction data to be published.
+     * @param transaction The parsed transaction data to be published.
      */
-    byte[] toBinary(RawTransaction transaction);
+    byte[] toBinary(ParsedTransaction transaction);
 }

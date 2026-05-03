@@ -1,6 +1,6 @@
 package org.neo_ledger_transaction.infrastructure.transport.publisher;
 
-import org.neo_ledger_transaction.domain.model.RawTransaction;
+import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionMapperFactoryPort;
 import org.neo_ledger_transaction.infrastructure.transport.mapper.TransactionMapper;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ public class TransactionMapperFactory implements TransactionMapperFactoryPort {
 
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public byte[] toBinary(RawTransaction transaction) {
+    public byte[] toBinary(ParsedTransaction transaction) {
         TransactionMapper mapper = mappers.stream()
                 .filter(m -> m.supports(transaction))
                 .findFirst()

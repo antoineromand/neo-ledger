@@ -1,23 +1,23 @@
 package org.neo_ledger_transaction.infrastructure.transport.mapper;
 
-import org.neo_ledger_transaction.domain.model.RawSepaTransaction;
-import org.neo_ledger_transaction.domain.model.RawTransaction;
+import org.neo_ledger_transaction.domain.model.ParsedSepaTransaction;
+import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SepaTransactionMapper implements TransactionMapper<RawSepaTransaction> {
+public class SepaTransactionMapper implements TransactionMapper<ParsedSepaTransaction> {
 
     public SepaTransactionMapper() {
 
     }
 
     @Override
-    public boolean supports(RawTransaction transaction) {
-        return transaction instanceof RawSepaTransaction;
+    public boolean supports(ParsedTransaction transaction) {
+        return transaction instanceof ParsedSepaTransaction;
     }
 
     @Override
-    public byte[] toBinary(RawSepaTransaction transaction) {
+    public byte[] toBinary(ParsedSepaTransaction transaction) {
         return org.neo_ledger.common.event.RawSepaTransaction.newBuilder()
                 .setEndToEndId(transaction.endToEndId())
                 .setDebtorIban(transaction.debtorIban())
