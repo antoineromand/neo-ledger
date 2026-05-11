@@ -3,19 +3,19 @@ package org.neo_ledger_transaction.application.service;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
 import org.neo_ledger_transaction.application.exceptions.InconsistentPaymentFileException;
+import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
+import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
-import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
-import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain001Parser;
-import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain008Parser;
 import org.neo_ledger_transaction.domain.model.ParsedFileHeader;
 import org.neo_ledger_transaction.domain.model.ParsedPaymentFile;
 import org.neo_ledger_transaction.domain.model.ParsedSepaTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
+import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain001Parser;
+import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain008Parser;
 import org.neo_ledger_transaction.infrastructure.transport.publisher.TransactionMapperFactory;
 import org.neo_ledger_transaction.infrastructure.validator.XsdSepaValidator;
 import org.xml.sax.SAXException;
@@ -26,9 +26,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -180,7 +180,8 @@ public class IngestionServiceUnitTest {
                             false,
                             "info",
                             "MANDATE-1",
-                            "SCHEME-1"
+                            "SCHEME-1",
+                            "SEPA_PAIN_008"
                     ))
             ));
 

@@ -29,6 +29,7 @@ public class SepaTransactionMapper implements TransactionMapper<ParsedSepaTransa
                 .setRemittanceInfo(transaction.remittanceInfo() != null ? transaction.remittanceInfo() : "")
                 .setMandateId(transaction.mandateId() != null ? transaction.mandateId() : "")
                 .setCreditorSchemeId(transaction.creditorSchemeId() != null ? transaction.creditorSchemeId() : "")
+                .setPaymentType(transaction.paymentType())
                 .build()
                 .toByteArray();
     }

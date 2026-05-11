@@ -49,6 +49,9 @@ import java.util.List;
 @Component
 public class SepaPain008Parser implements PaymentFileParser<ParsedPaymentFile<ParsedSepaTransaction>> {
 
+    private static final String paymentType = "SEPA_PAIN_008";
+
+
     /**
      * Parses an XML stream corresponding to a SEPA {@code pain.008} file.
      *
@@ -228,7 +231,8 @@ public class SepaPain008Parser implements PaymentFileParser<ParsedPaymentFile<Pa
                 isInstant,
                 remittanceInfo,
                 mandateId,
-                creditorSchemeId
+                creditorSchemeId,
+                paymentType
         );
     }
 

@@ -30,6 +30,8 @@ import java.util.List;
 @Component
 public class SepaPain001Parser implements PaymentFileParser<ParsedPaymentFile<ParsedSepaTransaction>> {
 
+    private static final String paymentType = "SEPA_PAIN_001";
+
     /**
      * Parses a SEPA Credit Transfer XML stream.
      *
@@ -145,6 +147,7 @@ public class SepaPain001Parser implements PaymentFileParser<ParsedPaymentFile<Pa
         String currency = null;
         String remittanceInfo = null;
 
+
         while (r.hasNext()) {
             int event = r.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
@@ -172,7 +175,8 @@ public class SepaPain001Parser implements PaymentFileParser<ParsedPaymentFile<Pa
                 isInstant,
                 remittanceInfo,
                 null,
-                null
+                null,
+                paymentType
         );
     }
 

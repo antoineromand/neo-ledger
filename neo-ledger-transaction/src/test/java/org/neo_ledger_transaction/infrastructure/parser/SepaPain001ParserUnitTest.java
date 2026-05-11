@@ -1,7 +1,6 @@
-package org.neo_ledger_transaction.application.service;
+package org.neo_ledger_transaction.infrastructure.parser;
 
 import org.junit.jupiter.api.Test;
-import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain001Parser;
 
 import javax.xml.stream.XMLStreamException;
@@ -34,6 +33,8 @@ public class SepaPain001ParserUnitTest {
         assertEquals("DE89370400440532013000", firstTransaction.creditorIdentifier());
         assertEquals("FAC-2026-00452", firstTransaction.remittanceInfo());
         assertEquals("E2E-001", firstTransaction.endToEndId());
+
+        assertEquals("SEPA_PAIN_001", firstTransaction.paymentType());
 
     }
 }

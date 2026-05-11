@@ -13,9 +13,14 @@ public record ParsedSepaTransaction(
         boolean isInstant,
         String remittanceInfo,
         String mandateId,
-        String creditorSchemeId
+        String creditorSchemeId,
+        String paymentType
 ) implements ParsedTransaction {
-
+    public ParsedSepaTransaction {
+        if (paymentType == null || paymentType.isBlank()) {
+            throw new IllegalArgumentException("paymentType must not be null or blank");
+        }
+    }
     @Override public String debtorIdentifier() { return debtorIban; }
     @Override public String creditorIdentifier() { return creditorIban; }
 }

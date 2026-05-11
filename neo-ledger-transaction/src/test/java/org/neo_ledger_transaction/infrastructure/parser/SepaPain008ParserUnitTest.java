@@ -1,8 +1,7 @@
-package org.neo_ledger_transaction.application.service;
+package org.neo_ledger_transaction.infrastructure.parser;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.neo_ledger_transaction.infrastructure.parser.sepa.SepaPain008Parser;
 
 import javax.xml.stream.XMLStreamException;
@@ -45,6 +44,9 @@ public class SepaPain008ParserUnitTest {
         assertEquals(LocalDate.parse("2026-03-20"), firstTransaction.requestedDate());
         assertEquals("MANDATE-001", firstTransaction.mandateId());
         assertEquals("Test remittance", firstTransaction.remittanceInfo());
+
+        assertEquals("SEPA_PAIN_008", firstTransaction.paymentType());
+
 
     }
 }
