@@ -17,5 +17,5 @@ if [ -z "$NEW_VERSION" ]; then
   exit 1
 fi
 
-git tag "$NEW_VERSION"
+git tag "v$NEW_VERSION"
 git push origin HEAD --follow-tags
