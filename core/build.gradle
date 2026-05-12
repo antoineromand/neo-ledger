@@ -1,0 +1,33 @@
+plugins {
+    id 'application'
+    id "org.springframework.boot" version "3.4.5"
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'org.neo_ledger'
+version = '0.2.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':common')
+    testImplementation testFixtures(project(':common'))
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation libs.guava
+}
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = 'org.neo_ledger_core.NeoLedgerCoreApplication'
+}
