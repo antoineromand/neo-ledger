@@ -97,15 +97,24 @@ services:
 
   neo-ledger-transaction-api:
     image: antoineromand/neo-ledger-transaction:latest
+    pull_policy: always
     container_name: transaction-api
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
       KAFKA_ADDRESS: kafka1:9092,kafka2:9092,kafka3:9092
+      NLT_JDBC: ${NLT_JDBC_PROD}
+      NLT_DB_USER: ${NLT_DB_USER}
+      NLT_DB_PASS: ${NLT_DB_PASS}
     depends_on:
-      - kafka1
-      - kafka2
-      - kafka3
+      kafka1:
+        condition: service_started
+      kafka2:
+        condition: service_started
+      kafka3:
+        condition: service_started
+      neo-ledger-transaction-db:
+        condition: service_healthy
     networks:
       - kafka-net
 
@@ -118,8 +127,16 @@ services:
       POSTGRES_USER: ${NLT_DB_USER}
       POSTGRES_PASSWORD: ${NLT_DB_PASS}
       POSTGRES_DB: ${NLT_DB_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${NLT_DB_USER} -d ${NLT_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - transaction-db-data:/var/lib/postgresql
+    networks:
+      - kafka-net
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
