@@ -10,5 +10,4 @@ public class NeoLedgerCoreApplication {
         SpringApplication.run(NeoLedgerCoreApplication.class, args);
     }
 
-
 }

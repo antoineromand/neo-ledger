@@ -29,5 +29,5 @@ test {
 }
 
 application {
-    mainClass = 'org.neo_ledger_core.NeoLedgerCoreApplication'
+    mainClass = 'org.neo_ledger.NeoLedgerCoreApplication'
 }
