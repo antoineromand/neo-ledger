@@ -6,24 +6,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * Scheduled trigger for the outbox relay use case.
- * <p>
- * This component does not implement the business flow itself; it only
- * delegates to the application layer on a fixed delay.
- * </p>
+ *
+ * <p>This component does not implement the business flow itself; it only delegates to the
+ * application layer on a fixed delay.
  */
 @Component
 public class TransactionOutboxProcessor {
-    private final TransactionOutboxRelayUseCasePort transactionOutboxRelayUseCasePort;
+  private final TransactionOutboxRelayUseCasePort transactionOutboxRelayUseCasePort;
 
-    public TransactionOutboxProcessor(TransactionOutboxRelayUseCasePort transactionOutboxRelayUseCasePort) {
-        this.transactionOutboxRelayUseCasePort = transactionOutboxRelayUseCasePort;
-    }
+  public TransactionOutboxProcessor(
+      TransactionOutboxRelayUseCasePort transactionOutboxRelayUseCasePort) {
+    this.transactionOutboxRelayUseCasePort = transactionOutboxRelayUseCasePort;
+  }
 
-    /**
-     * Executes one relay cycle.
-     */
-    @Scheduled(fixedDelay = 60000)
-    public void execute() {
-        this.transactionOutboxRelayUseCasePort.execute();
-    }
+  /** Executes one relay cycle. */
+  @Scheduled(fixedDelay = 60000)
+  public void execute() {
+    this.transactionOutboxRelayUseCasePort.execute();
+  }
 }

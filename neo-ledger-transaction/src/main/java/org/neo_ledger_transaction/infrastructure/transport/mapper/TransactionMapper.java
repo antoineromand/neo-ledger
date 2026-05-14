@@ -4,29 +4,28 @@ import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 
 /**
  * Strategy interface for mapping domain transactions to transport-specific binary formats.
- * <p>
- * This mapper is responsible for serializing a {@link ParsedTransaction} or its subtypes
- * into a byte array suitable for messaging systems or network transmission.
- * </p>
+ *
+ * <p>This mapper is responsible for serializing a {@link ParsedTransaction} or its subtypes into a
+ * byte array suitable for messaging systems or network transmission.
  *
  * @param <T> The specific subtype of ParsedTransaction handled by this mapper.
  */
 public interface TransactionMapper<T extends ParsedTransaction> {
 
-    /**
-     * Checks if this mapper supports the given transaction instance.
-     *
-     * @param transaction The transaction to evaluate.
-     * @return {@code true} if this mapper can process the transaction, otherwise {@code false}.
-     */
-    boolean supports(ParsedTransaction transaction);
+  /**
+   * Checks if this mapper supports the given transaction instance.
+   *
+   * @param transaction The transaction to evaluate.
+   * @return {@code true} if this mapper can process the transaction, otherwise {@code false}.
+   */
+  boolean supports(ParsedTransaction transaction);
 
-    /**
-     * Converts the transaction into its binary representation.
-     *
-     * @param transaction The transaction object to be mapped.
-     * @return A byte array representing the serialized transaction.
-     * @throws RuntimeException If a mapping or serialization error occurs.
-     */
-    byte[] toBinary(T transaction);
+  /**
+   * Converts the transaction into its binary representation.
+   *
+   * @param transaction The transaction object to be mapped.
+   * @return A byte array representing the serialized transaction.
+   * @throws RuntimeException If a mapping or serialization error occurs.
+   */
+  byte[] toBinary(T transaction);
 }

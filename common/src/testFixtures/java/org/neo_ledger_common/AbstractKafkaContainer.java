@@ -6,16 +6,16 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 public abstract class AbstractKafkaContainer {
-    protected static final KafkaContainer KAFKA;
+  protected static final KafkaContainer KAFKA;
 
-    static {
-        KAFKA = new KafkaContainer(DockerImageName.parse(("apache/kafka:3.7.0")));
-        KAFKA.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(KAFKA::stop));
-    }
+  static {
+    KAFKA = new KafkaContainer(DockerImageName.parse(("apache/kafka:3.7.0")));
+    KAFKA.start();
+    Runtime.getRuntime().addShutdownHook(new Thread(KAFKA::stop));
+  }
 
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
-    }
+  @DynamicPropertySource
+  static void kafkaProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
+  }
 }

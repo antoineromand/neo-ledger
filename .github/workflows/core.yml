@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/core.yml'
+      - 'build.gradle'
       - 'common/**'
       - 'neo-ledger-core/**'
       - 'dockerfile/settings/core.settings.gradle'
@@ -31,7 +32,7 @@ jobs:
           cache: 'gradle'
 
       - name: Run Unit & Integration Tests
-        run: ./gradlew :neo-ledger-core:test
+        run: ./gradlew spotlessCheck :neo-ledger-core:test
 
   build-and-push:
     name: Build and push image

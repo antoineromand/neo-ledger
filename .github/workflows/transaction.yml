@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/transaction.yml'
+      - 'build.gradle'
       - 'common/**'
       - 'neo-ledger-transaction/**'
       - 'dockerfile/settings/transaction.settings.gradle'
@@ -31,7 +32,7 @@ jobs:
           cache: 'gradle'
 
       - name: Run Unit & Integration Tests
-        run: ./gradlew :neo-ledger-transaction:test
+        run: ./gradlew spotlessCheck :neo-ledger-transaction:test
 
   build-and-push:
     name: Build and push image

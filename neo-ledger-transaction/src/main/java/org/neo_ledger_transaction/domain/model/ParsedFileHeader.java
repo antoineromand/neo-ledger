@@ -1,11 +1,5 @@
 package org.neo_ledger_transaction.domain.model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record ParsedFileHeader(
-        String msgId,
-        int expectedNbTxs,
-        LocalDateTime creationDateTime
-) {
-}
+public record ParsedFileHeader(String msgId, int expectedNbTxs, LocalDateTime creationDateTime) {}

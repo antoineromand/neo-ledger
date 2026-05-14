@@ -1,29 +1,31 @@
 package org.neo_ledger_transaction.infrastructure.transport.publisher;
 
+import java.util.List;
 import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionMapperFactoryPort;
 import org.neo_ledger_transaction.infrastructure.transport.mapper.TransactionMapper;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class TransactionMapperFactory implements TransactionMapperFactoryPort {
 
-    private final List<TransactionMapper<?>> mappers;
+  private final List<TransactionMapper<?>> mappers;
 
-    public TransactionMapperFactory(List<TransactionMapper<?>> transactionMappers) {
-        this.mappers = transactionMappers;
-    }
+  public TransactionMapperFactory(List<TransactionMapper<?>> transactionMappers) {
+    this.mappers = transactionMappers;
+  }
 
-    @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public byte[] toBinary(ParsedTransaction transaction) {
-        TransactionMapper mapper = mappers.stream()
-                .filter(m -> m.supports(transaction))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No mapper found for: " + transaction.getClass()));
+  @Override
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public byte[] toBinary(ParsedTransaction transaction) {
+    TransactionMapper mapper =
+        mappers.stream()
+            .filter(m -> m.supports(transaction))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("No mapper found for: " + transaction.getClass()));
 
-        return mapper.toBinary(transaction);
-    }
+    return mapper.toBinary(transaction);
+  }
 }

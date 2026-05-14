@@ -4,7 +4,7 @@ import org.neo_ledger.common.exceptions.BusinessException;
 
 public class UnsupportedPaymentFormatException extends BusinessException {
 
-    public UnsupportedPaymentFormatException() {
-        super("Unsupported payment format");
-    }
+  public UnsupportedPaymentFormatException() {
+    super("Unsupported payment format");
+  }
 }
