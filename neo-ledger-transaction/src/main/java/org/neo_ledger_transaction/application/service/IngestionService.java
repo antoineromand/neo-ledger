@@ -1,12 +1,21 @@
 package org.neo_ledger_transaction.application.service;
 
 import jakarta.transaction.Transactional;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.neo_ledger_transaction.application.PaymentFileType;
-import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
 import org.neo_ledger_transaction.application.exceptions.InconsistentPaymentFileException;
+import org.neo_ledger_transaction.application.exceptions.InputStreamTechnicalException;
 import org.neo_ledger_transaction.application.exceptions.UnsupportedPaymentFormatException;
 import org.neo_ledger_transaction.application.exceptions.WritingTransactionException;
 import org.neo_ledger_transaction.application.port.in.IngestionUseCasePort;
+import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.neo_ledger_transaction.application.service.factory.PaymentParserFactory;
 import org.neo_ledger_transaction.application.service.factory.XmlValidatorFactory;
 import org.neo_ledger_transaction.domain.model.ParsedPaymentFile;
@@ -14,138 +23,136 @@ import org.neo_ledger_transaction.domain.model.ParsedTransaction;
 import org.neo_ledger_transaction.domain.port.out.TransactionMapperFactoryPort;
 import org.neo_ledger_transaction.domain.port.out.TransactionOutboxPort;
 import org.neo_ledger_transaction.domain.port.out.XmlValidator;
-import org.neo_ledger_transaction.application.port.out.PaymentFileParser;
 import org.springframework.stereotype.Service;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Application service responsible for the ingestion of payment files.
- * <p>
- * This service orchestrates the format detection process, data parsing,
- * and transaction publication to third-party systems via an output port.
- * </p>
+ *
+ * <p>This service orchestrates the format detection process, data parsing, and transaction
+ * publication to third-party systems via an output port.
  */
 @Service
 public class IngestionService implements IngestionUseCasePort {
 
-    private final PaymentParserFactory paymentFactory;
-    private final TransactionMapperFactoryPort transactionMapperFactory;
-    private final XmlValidatorFactory xmlValidatorFactory;
-    private final TransactionOutboxPort transactionOutboxPort;
+  private final PaymentParserFactory paymentFactory;
+  private final TransactionMapperFactoryPort transactionMapperFactory;
+  private final XmlValidatorFactory xmlValidatorFactory;
+  private final TransactionOutboxPort transactionOutboxPort;
 
-    private static final String eventType = "TRANSACTION_INGESTED";
+  private static final String eventType = "TRANSACTION_INGESTED";
 
-    /**
-     * Dependency injection constructor.
-     *
-     * @param paymentParserFactory Factory to retrieve the appropriate parser for the file type.
-     * @param xmlValidatorFactory  Factory to retrieve the appropriate validator.
-     * @param transactionMapperFactory Factory to retrieve the appropriate mapper
-     * to transform a transaction into a byte array.
-     * @param transactionOutboxPort  Port for the transaction outbox repository.
-     */
-    public IngestionService(PaymentParserFactory paymentParserFactory, TransactionMapperFactoryPort transactionMapperFactory, XmlValidatorFactory xmlValidatorFactory, TransactionOutboxPort transactionOutboxPort) {
-        this.paymentFactory = paymentParserFactory;
-        this.transactionMapperFactory = transactionMapperFactory;
-        this.xmlValidatorFactory = xmlValidatorFactory;
-        this.transactionOutboxPort = transactionOutboxPort;
+  /**
+   * Dependency injection constructor.
+   *
+   * @param paymentParserFactory Factory to retrieve the appropriate parser for the file type.
+   * @param xmlValidatorFactory Factory to retrieve the appropriate validator.
+   * @param transactionMapperFactory Factory to retrieve the appropriate mapper to transform a
+   *     transaction into a byte array.
+   * @param transactionOutboxPort Port for the transaction outbox repository.
+   */
+  public IngestionService(
+      PaymentParserFactory paymentParserFactory,
+      TransactionMapperFactoryPort transactionMapperFactory,
+      XmlValidatorFactory xmlValidatorFactory,
+      TransactionOutboxPort transactionOutboxPort) {
+    this.paymentFactory = paymentParserFactory;
+    this.transactionMapperFactory = transactionMapperFactory;
+    this.xmlValidatorFactory = xmlValidatorFactory;
+    this.transactionOutboxPort = transactionOutboxPort;
+  }
+
+  /**
+   * Executes the complete ingestion workflow for a payment file.
+   *
+   * <p>The process uses a {@link ByteArrayInputStream} to allow three consecutive reads: 1. A full
+   * read to detect the file type (XML Namespace). 2. A full read to validate the XML structure. 3.
+   * A full read for parsing and transaction extraction.
+   *
+   * @param file The binary stream (InputStream) of the file to process.
+   * @throws WritingTransactionException If there is any error while writing the transaction.
+   * @throws InputStreamTechnicalException If there is any error while reading input stream.
+   */
+  @Override
+  @Transactional(rollbackOn = ParserConfigurationException.class)
+  public void executeIngestion(InputStream file) throws ParserConfigurationException {
+    try {
+      byte[] xmlContent = file.readAllBytes();
+
+      String paymentType = this.detectPaymentType(new ByteArrayInputStream(xmlContent));
+
+      XmlValidator xmlValidator = this.xmlValidatorFactory.getValidator(paymentType);
+
+      xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
+
+      PaymentFileParser<ParsedPaymentFile<? extends ParsedTransaction>> parser =
+          (PaymentFileParser<ParsedPaymentFile<? extends ParsedTransaction>>)
+              this.paymentFactory.getParser(paymentType);
+      ParsedPaymentFile<? extends ParsedTransaction> res =
+          parser.parse(new ByteArrayInputStream(xmlContent));
+
+      this.validateTransactionCount(res);
+      this.writeTransaction(res, paymentType);
+    } catch (IOException | XMLStreamException e) {
+      throw new InputStreamTechnicalException(e);
     }
+  }
 
-    /**
-     * Executes the complete ingestion workflow for a payment file.
-     * <p>
-     * The process uses a {@link ByteArrayInputStream} to allow three consecutive reads:
-     * 1. A full read to detect the file type (XML Namespace).
-     * 2. A full read to validate the XML structure.
-     * 3. A full read for parsing and transaction extraction.
-     * </p>
-     *
-     * @param file The binary stream (InputStream) of the file to process.
-     * @throws WritingTransactionException If there is any error while writing the transaction.
-     * @throws InputStreamTechnicalException If there is any error while reading input stream.
-     */
-    @Override
-    @Transactional(rollbackOn = ParserConfigurationException.class)
-    public void executeIngestion(InputStream file) throws ParserConfigurationException {
-        try {
-            byte[] xmlContent = file.readAllBytes();
-
-            String paymentType = this.detectPaymentType(new ByteArrayInputStream(xmlContent));
-
-            XmlValidator xmlValidator = this.xmlValidatorFactory.getValidator(paymentType);
-
-            xmlValidator.validate(new ByteArrayInputStream(xmlContent), paymentType);
-
-            PaymentFileParser<ParsedPaymentFile<? extends ParsedTransaction>> parser =
-                    (PaymentFileParser<ParsedPaymentFile<? extends ParsedTransaction>>) this.paymentFactory.getParser(paymentType);
-            ParsedPaymentFile<? extends ParsedTransaction> res = parser.parse(new ByteArrayInputStream(xmlContent));
-
-            this.validateTransactionCount(res);
-            this.writeTransaction(res, paymentType);
-        } catch (IOException | XMLStreamException e) {
-            throw new InputStreamTechnicalException(e);
-        }
-
+  private void validateTransactionCount(ParsedPaymentFile<? extends ParsedTransaction> res) {
+    if (res.header().expectedNbTxs() != res.transactions().size()) {
+      throw new InconsistentPaymentFileException(
+          res.header().expectedNbTxs(), res.transactions().size());
     }
+  }
 
-    private void validateTransactionCount(ParsedPaymentFile<? extends ParsedTransaction> res) {
-        if (res.header().expectedNbTxs() != res.transactions().size()) {
-            throw new InconsistentPaymentFileException(res.header().expectedNbTxs(), res.transactions().size());
-        }
-    }
-
-    /**
-     * Publish a transaction to an event
-     *
-     * @param res         The parsed transaction from the input stream.
-     * @throws WritingTransactionException If there is any error while writing the transaction.
-     */
-    private void writeTransaction(ParsedPaymentFile<? extends ParsedTransaction> res, String paymentType) {
-        try {
-            res.transactions().forEach((transaction) -> {
+  /**
+   * Publish a transaction to an event
+   *
+   * @param res The parsed transaction from the input stream.
+   * @throws WritingTransactionException If there is any error while writing the transaction.
+   */
+  private void writeTransaction(
+      ParsedPaymentFile<? extends ParsedTransaction> res, String paymentType) {
+    try {
+      res.transactions()
+          .forEach(
+              (transaction) -> {
                 byte[] binary = this.transactionMapperFactory.toBinary(transaction);
-                this.transactionOutboxPort.save(transaction.endToEndId(), paymentType, eventType, binary);
-            });
-        } catch (Exception e) {
-            throw new WritingTransactionException(e);
-        }
+                this.transactionOutboxPort.save(
+                    transaction.endToEndId(), paymentType, eventType, binary);
+              });
+    } catch (Exception e) {
+      throw new WritingTransactionException(e);
     }
+  }
 
-    /**
-     * Analyzes the beginning of the XML stream to identify the document's Namespace.
-     * <p>
-     * This method looks for the {@code <Document>} root tag and uses its
-     * namespace URI to map it to a {@link PaymentFileType}.
-     * </p>
-     *
-     * @param stream The stream to analyze.
-     * @return The name (String) of the detected payment type.
-     * @throws XMLStreamException       If the XML structure does not allow detection.
-     * @throws UnsupportedPaymentFormatException If the detected namespace is unknown.
-     */
-    private String detectPaymentType(InputStream stream) throws XMLStreamException {
-        XMLInputFactory xif = XMLInputFactory.newFactory();
-        xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-        xif.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
-        XMLStreamReader r = xif.createXMLStreamReader(stream);
+  /**
+   * Analyzes the beginning of the XML stream to identify the document's Namespace.
+   *
+   * <p>This method looks for the {@code <Document>} root tag and uses its namespace URI to map it
+   * to a {@link PaymentFileType}.
+   *
+   * @param stream The stream to analyze.
+   * @return The name (String) of the detected payment type.
+   * @throws XMLStreamException If the XML structure does not allow detection.
+   * @throws UnsupportedPaymentFormatException If the detected namespace is unknown.
+   */
+  private String detectPaymentType(InputStream stream) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+    xif.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
+    XMLStreamReader r = xif.createXMLStreamReader(stream);
 
-        try {
-            while (r.hasNext()) {
-                if (r.next() == XMLStreamConstants.START_ELEMENT && "Document".equals(r.getLocalName())) {
-                    return PaymentFileType.fromNamespace(r.getNamespaceURI()).map(Enum::name).orElseThrow(UnsupportedPaymentFormatException::new);
-                }
-            }
-        } finally {
-            r.close();
+    try {
+      while (r.hasNext()) {
+        if (r.next() == XMLStreamConstants.START_ELEMENT && "Document".equals(r.getLocalName())) {
+          return PaymentFileType.fromNamespace(r.getNamespaceURI())
+              .map(Enum::name)
+              .orElseThrow(UnsupportedPaymentFormatException::new);
         }
-        throw new UnsupportedPaymentFormatException();
+      }
+    } finally {
+      r.close();
     }
+    throw new UnsupportedPaymentFormatException();
+  }
 }

@@ -10,9 +10,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableScheduling
 public class NeoLedgerTransactionApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(NeoLedgerTransactionApplication.class, args);
-    }
-
-
+  public static void main(String[] args) {
+    SpringApplication.run(NeoLedgerTransactionApplication.class, args);
+  }
 }

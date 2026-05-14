@@ -6,19 +6,20 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TransactionOutboxRepositoryAdapter implements TransactionOutboxPort {
-    private final TransactionOutboxJpaRepository transactionOutboxJpaRepository;
+  private final TransactionOutboxJpaRepository transactionOutboxJpaRepository;
 
-    public TransactionOutboxRepositoryAdapter(TransactionOutboxJpaRepository transactionOutboxJpaRepository) {
-        this.transactionOutboxJpaRepository = transactionOutboxJpaRepository;
-    }
+  public TransactionOutboxRepositoryAdapter(
+      TransactionOutboxJpaRepository transactionOutboxJpaRepository) {
+    this.transactionOutboxJpaRepository = transactionOutboxJpaRepository;
+  }
 
-    @Override
-    public void save(String endToEndId, String routingKey, String eventType, byte[] payload) {
-        OutboxEntry outboxEntry = new OutboxEntry();
-        outboxEntry.setEndToEndId(endToEndId);
-        outboxEntry.setRoutingKey(routingKey);
-        outboxEntry.setEventType(eventType);
-        outboxEntry.setPayload(payload);
-        this.transactionOutboxJpaRepository.save(outboxEntry);
-    }
+  @Override
+  public void save(String endToEndId, String routingKey, String eventType, byte[] payload) {
+    OutboxEntry outboxEntry = new OutboxEntry();
+    outboxEntry.setEndToEndId(endToEndId);
+    outboxEntry.setRoutingKey(routingKey);
+    outboxEntry.setEventType(eventType);
+    outboxEntry.setPayload(payload);
+    this.transactionOutboxJpaRepository.save(outboxEntry);
+  }
 }

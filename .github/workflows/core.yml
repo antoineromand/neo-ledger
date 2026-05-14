@@ -1,12 +1,22 @@
-name: CI/CD Pipeline - Transaction API
+name: CI/CD Pipeline - Core API
 
 on:
   pull_request:
     branches: [ main ]
-    paths: [ 'neo-ledger-transaction/**', 'common/**' ]
+    paths:
+      - '.github/workflows/core.yml'
+      - 'build.gradle'
+      - 'common/**'
+      - 'neo-ledger-core/**'
+      - 'dockerfile/settings/core.settings.gradle'
+      - 'dockerfile/core.Dockerfile'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/libs.versions.toml'
   push:
     tags:
-      - "v*"
+      - 'core-v*'
+  workflow_dispatch:
 
 jobs:
   tests:
@@ -22,12 +32,12 @@ jobs:
           cache: 'gradle'
 
       - name: Run Unit & Integration Tests
-        run: ./gradlew :neo-ledger-transaction:test
+        run: ./gradlew spotlessCheck :neo-ledger-core:test
 
   build-and-push:
     name: Build and push image
     needs: tests
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/core-v')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,23 +59,23 @@ jobs:
 
       - name: Compute Docker tag
         id: version
-        run: echo "docker_tag=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: echo "docker_tag=${GITHUB_REF_NAME#core-v}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./dockerfile/transaction.Dockerfile
+          file: ./dockerfile/core.Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            antoineromand/neo-ledger-transaction:${{ steps.version.outputs.docker_tag }}
-            antoineromand/neo-ledger-transaction:latest
+            antoineromand/neo-ledger-core:${{ steps.version.outputs.docker_tag }}
+            antoineromand/neo-ledger-core:latest
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v3
         with:
-          subject-name: index.docker.io/antoineromand/neo-ledger-transaction
+          subject-name: index.docker.io/antoineromand/neo-ledger-core
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
