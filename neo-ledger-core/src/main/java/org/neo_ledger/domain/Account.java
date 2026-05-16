@@ -26,7 +26,7 @@ public class Account {
       String currency,
       AccountType accountType,
       AccountStatus accountStatus) {
-    this.identity = Objects.requireNonNull(identity);
+    this.identity = identity;
     this.iban = Objects.requireNonNull(iban);
     this.bic = Objects.requireNonNull(bic);
     this.currentBalance = Objects.requireNonNull(currentBalance);
