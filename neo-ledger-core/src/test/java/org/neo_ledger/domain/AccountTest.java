@@ -48,7 +48,8 @@ class AccountTest {
   void should_refuse_reservation_above_available_balance() {
     Account account = newAccount(AccountStatus.ACTIVE);
 
-    assertThrows(IllegalArgumentException.class, () -> account.reserveFunds(new BigDecimal("101.00")));
+    assertThrows(
+        IllegalArgumentException.class, () -> account.reserveFunds(new BigDecimal("101.00")));
   }
 
   @Test

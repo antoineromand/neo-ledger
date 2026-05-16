@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AccountRepositoryAdapter implements AccountRepositoryPort {
-    private final AccountJpaRepository accountJpaRepository;
+  private final AccountJpaRepository accountJpaRepository;
 
-    public AccountRepositoryAdapter(AccountJpaRepository accountJpaRepository) {
-        this.accountJpaRepository = accountJpaRepository;
-    }
+  public AccountRepositoryAdapter(AccountJpaRepository accountJpaRepository) {
+    this.accountJpaRepository = accountJpaRepository;
+  }
 
-    @Override
-    public Account createAccount(Account account) {
-        AccountEntity accountEntity = AccountMapper.toEntity(account);
-        return AccountMapper.toDomain(accountJpaRepository.save(accountEntity));
-    }
+  @Override
+  public Account createAccount(Account account) {
+    AccountEntity accountEntity = AccountMapper.toEntity(account);
+    return AccountMapper.toDomain(accountJpaRepository.save(accountEntity));
+  }
 }
