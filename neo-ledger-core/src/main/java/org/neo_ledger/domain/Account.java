@@ -69,25 +69,18 @@ public class Account {
   }
 
   public void creditCurrentBalance(BigDecimal amount) {
-    ensureIsActive();
+    ensureMoneyOperationsAllowed();
     this.currentBalance = this.currentBalance.credit(amount);
   }
 
   public void debitCurrentBalance(BigDecimal amount) {
-    ensureIsActive();
+    ensureMoneyOperationsAllowed();
     this.currentBalance = this.currentBalance.debit(amount);
   }
 
-  public void releaseReservedBalance(BigDecimal amount) {
-    ensureIsActive();
-    this.reservedBalance = this.reservedBalance.debit(amount);
-  }
-
-  public void reserveReservedBalance(BigDecimal amount) {
-    ensureIsActive();
-    if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new IllegalArgumentException("amount must be > 0");
-    }
+  public void reserveFunds(BigDecimal amount) {
+    ensureMoneyOperationsAllowed();
+    requirePositiveAmount(amount);
     BigDecimal available = this.currentBalance.amount().subtract(this.reservedBalance.amount());
     if (amount.compareTo(available) > 0) {
       throw new IllegalArgumentException("amount exceeds available balance");
@@ -95,37 +88,69 @@ public class Account {
     this.reservedBalance = this.reservedBalance.credit(amount);
   }
 
-  public void activate() {
-    if (accountStatus == AccountStatus.CLOSED) {
-      throw new IllegalStateException("Account has been closed, it cannot be activated");
-    }
+  public void releaseFunds(BigDecimal amount) {
+    ensureMoneyOperationsAllowed();
+    this.reservedBalance = this.reservedBalance.debit(amount);
+  }
+
+  public void reactivateAccount() {
+    ensureTransitionAllowed(AccountStatus.ACTIVE);
     this.accountStatus = AccountStatus.ACTIVE;
   }
 
-  public void close() {
-    if (accountStatus == AccountStatus.CLOSED) {
-      throw new IllegalStateException("Account has been closed, it cannot be deactivated");
-    }
+  public void closeAccount() {
+    ensureTransitionAllowed(AccountStatus.CLOSED);
     this.accountStatus = AccountStatus.CLOSED;
   }
 
-  public void suspend() {
-    if (accountStatus == AccountStatus.SUSPENDED) {
-      throw new IllegalStateException("Account has been suspended, it cannot be suspended");
-    }
+  public void suspendAccount() {
+    ensureTransitionAllowed(AccountStatus.SUSPENDED);
     this.accountStatus = AccountStatus.SUSPENDED;
   }
 
-  public void block() {
-    if (accountStatus == AccountStatus.BLOCKED) {
-      throw new IllegalStateException("Account has been blocked, it cannot be blocked");
-    }
+  public void blockAccount() {
+    ensureTransitionAllowed(AccountStatus.BLOCKED);
     this.accountStatus = AccountStatus.BLOCKED;
   }
 
-  private void ensureIsActive() {
-    if (accountStatus != AccountStatus.ACTIVE) {
+  public void activate() {
+    reactivateAccount();
+  }
+
+  public void close() {
+    closeAccount();
+  }
+
+  public void suspend() {
+    suspendAccount();
+  }
+
+  public void block() {
+    blockAccount();
+  }
+
+  private void ensureMoneyOperationsAllowed() {
+    if (!accountStatus.allowsMoneyOperations()) {
       throw new IllegalStateException("Account status must be ACTIVE");
+    }
+  }
+
+  private void ensureTransitionAllowed(AccountStatus targetStatus) {
+    if (accountStatus == targetStatus) {
+      throw new IllegalStateException("Account is already " + targetStatus);
+    }
+    if (!accountStatus.canTransitionTo(targetStatus)) {
+      throw new IllegalStateException(
+          "Transition from " + accountStatus + " to " + targetStatus + " is not allowed");
+    }
+  }
+
+  private static void requirePositiveAmount(BigDecimal amount) {
+    if (amount == null) {
+      throw new NullPointerException("amount must not be null");
+    }
+    if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("amount must be > 0");
     }
   }
 }
