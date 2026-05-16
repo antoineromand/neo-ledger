@@ -14,6 +14,48 @@ Le projet est découpé en modules Gradle pour assurer une séparation stricte d
 
 ---
 
+## 💳 Mouvement d'un compte
+
+Le domaine `Account` manipule deux soldes:
+
+* `current_balance` : solde total du compte
+* `reserved_balance` : part du solde déjà bloquée
+
+### Flux métier
+
+```mermaid
+flowchart LR
+    A[Credit] --> B[Current balance augmente]
+    B --> C[Reserve]
+    C --> D[Reserved balance augmente]
+    D --> E[Release]
+    E --> F[Reserved balance diminue]
+    F --> G[Debit]
+    G --> H[Current balance diminue]
+```
+
+### Exemple
+
+Etat initial:
+
+* `current_balance = 100`
+* `reserved_balance = 30`
+* `available = 70`
+
+Operations:
+
+1. `credit(20)` -> `current_balance = 120`
+2. `reserve(50)` -> `reserved_balance = 80`
+3. `release(20)` -> `reserved_balance = 60`
+4. `debit(10)` -> `current_balance = 110`
+
+Regle de reservation:
+
+* une reservation est autorisee seulement si `amount <= current_balance - reserved_balance`
+* sinon, l'operation est refusee
+
+---
+
 ## 🛠 Pré-requis
 
 Avant de commencer, assurez-vous d'avoir installé :
@@ -86,4 +128,3 @@ qu'une seule instance Docker pour toute la suite de tests.
 
 Ce projet vise à fournir une solution de ledger (grand livre) immuable et performante en utilisant les meilleures
 pratiques de développement Java moderne.
-
