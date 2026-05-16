@@ -138,6 +138,26 @@ services:
     networks:
       - kafka-net
 
+  neo-ledger-core-db:
+    image: postgres:16.2-alpine
+    restart: always
+    ports:
+      - "${NLC_DB_PORT}"
+    environment:
+      POSTGRES_USER: ${NLC_DB_USER}
+      POSTGRES_PASSWORD: ${NLC_DB_PASS}
+      POSTGRES_DB: ${NLC_DB_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${NLC_DB_USER} -d ${NLC_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - core-db-data:/var/lib/postgresql
+    networks:
+      - kafka-net
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -163,3 +183,4 @@ volumes:
   kafka2_data:
   kafka3_data:
   transaction-db-data:
+  core-db-data:
